@@ -1,0 +1,35 @@
+?RCS: $Id$
+?RCS:
+?RCS: @COPYRIGHT@
+?RCS:
+?MAKE:gtkgversion: awk nawk cat rm rsrc
+?MAKE:	-pick add $@ %<
+?S:gtkgversion:
+?S:	The version of gtk-gnutella we're compiling.
+?S:.
+?T:awkp
+?F:!ver
+?LINT:usefile ver.c
+: determine our version number
+echo " "
+echo "Figuring out my version number..." >&4
+$cat > ver <<'EOC'
+/^#define GTA_VERSION	/	{ major=$3 }
+/^#define GTA_SUBVERSION/	{ minor=$3 }
+/^#define GTA_PATCHLEVEL/	{ tiny=$3 }
+/^#define GTA_REVCHAR/		{ rev=$3; gsub("[^a-zA-Z]", "", rev); }
+END {
+	if (tiny) {
+		printf("%u.%u.%u%s", major, minor, tiny, rev);
+	} else {
+		printf("%u.%u%s", major, minor, rev);
+	}
+}
+EOC
+?X: Prefer "nawk" since older "awk" versions may not implement gsub()
+awkp=$awk
+test -x $nawk && awkp=$nawk
+gtkgversion=`$awkp -f ./ver "$rsrc/src/gtk-gnutella.h"`
+echo "(You have version $gtkgversion.)"
+$rm -f ver
+

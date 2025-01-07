@@ -1,0 +1,83 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2004, Raphael Manfredi
+ *
+ * Jmakefile for interface sources.
+ *
+ *----------------------------------------------------------------------
+ * This file is part of gtk-gnutella.
+ *
+ *  gtk-gnutella is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  gtk-gnutella is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with gtk-gnutella; if not, write to the Free Software
+ *  Foundation, Inc.:
+ *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *----------------------------------------------------------------------
+ */
+
+;# $Id$
+
+/*
+ * We disable parallelism here because it does not seem to behave correctly.
+ *
+ * This may be due to the autogen program generating 3 files at the same
+ * time and all these files being declared as make targets.
+ *
+ * The .NOTPARALLEL directive will request sequential running for all the
+ * targets in this Makefile.  It is supported by GNU make but should be
+ * silently ignored by other make programs.
+ */
+.NOTPARALLEL:
+
+SetSubdirs(bridge gen)
+DependSubdirs()
+
+SOURCES = gnet_property.c gui_property.c
+
+++GLIB_CFLAGS $glibcflags
+
+CFLAGS = -I$(TOP) -I.. $(GLIB_CFLAGS) -DCURDIR=$(CURRENT)
+DPFLAGS = $(CFLAGS)
+
+all:: properties
+
+properties: gnet_property.c gui_property.c
+
+/*
+ * Recreate the property files using autogen on the template listing the
+ * known properties.
+ *
+ * NOTE: this is only done when there is a .package file at the root of the
+ * source tree.  This file is created by packinit, a tool that comes with
+ * "dist", the package which includes metaconfig and jmake.  Since only
+ * developers will need that file around, this allows us to prevent accidental
+ * regeneration of property files in distributions (should the timestamp of
+ * the files indicate that the output is not up-to-date with respect to the
+ * property defintions).
+ */
+#define BuildProperties(def,base)							@!\
+base/**/_priv.h base.h base.c: def props.tpl				@@\
+	-@if test -f $(TOP)/.package; then \					@@\
+		echo "  autogen def"; \								@@\
+		autogen def; \										@@\
+	else touch $@; fi
+
+
+BuildProperties(gnet_props.ag, gnet_property)
+BuildProperties(gui_props.ag, gui_property)
+
+NormalObjectTarget(gnet_property)
+NormalObjectTarget(gui_property)
+
+DependTarget()
+

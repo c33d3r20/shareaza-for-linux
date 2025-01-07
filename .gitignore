@@ -1,0 +1,97 @@
+# ignore objects and archives, anywhere in the tree.
+*.[oa]
+Makefile
+Makefile.bak
+MANIFEST.new
+
+# ignore backup file (e.g. Makefile.SH~)
+*~
+
+# For Windows, on case-insensitive filesystems
+*.exe
+makefile
+makefile.bak
+makensis.log
+gtk-gnutella.nsh
+
+/config.h
+/mkdep
+/.package
+/config.sh
+/.config
+/gtk-gnutella.spec
+/config.sh.old
+/install
+/src/tags
+
+# Files that can be left over by metaconfig
+/Obsolete
+/Wanted
+
+# Floating point tests
+src/lib/float-test
+src/lib/float-times
+src/lib/floats
+src/lib/bad-fixed
+src/lib/bad-free
+src/lib/float-dragon.out
+
+# Sort algorithm tests
+src/lib/sort-test
+
+# Random number tests
+src/lib/random-test
+
+# Thread tests
+src/lib/thread-test
+
+# File Tree Walker tests
+src/lib/ftw-test
+
+# File-locking tests
+src/lib/filelock-test
+
+# Tests for launch() and spopen()
+src/lib/launch-test
+src/lib/spopen-test
+
+# Miscellaneous tests
+src/lib/pattern-test
+src/lib/stack-test
+src/lib/stat-test
+
+# This file is used to hardwire the result of scripts/git-version.sh
+/version
+
+/src/gtk-gnutella
+/src/gtk-gnutella.nm
+/src/revision.h
+
+src/bin/sha1sum
+src/core/gtkg-shell
+
+/src/lib/bit_array.[ch]
+/src/lib/bit_field.[ch]
+/src/lib/htable.[ch]
+/src/lib/hset.[ch]
+
+# Ignore gtk1 and gtk2 generated callbacks
+/src/ui/gtk/gtk?/callbacks.[ch]
+
+# SDBM
+/src/sdbm/dba
+/src/sdbm/dbu
+/src/sdbm/dbe
+/src/sdbm/dbt
+
+# Generated from template
+osx/Info-gtk-gnutella.plist
+
+# Hard-linked files from if/gen
+src/core/gen-*.c
+src/xml/gen-*.c
+src/lib/gen-*.c
+
+/po/*.gmo
+/po/stamp-po
+/po/remove-potcdate.sed

@@ -1,0 +1,51 @@
+CONFIG=true
+SRC="."
+TOP=/home/user/Documents/MyProjects/XMRDROPPER/gtk-gnutella
+echo "Doing variable substitutions on .SH files..."
+if test -f "$SRC/MANIFEST"; then
+	set x `awk '{print $1}' <$SRC/MANIFEST | grep '\.SH'`
+else
+	echo "(Looking for .SH files under the source directory.)"
+	set x `(cd "$SRC"; find . -name "*.SH" -print)`
+fi
+shift
+case $# in
+0) set x `(cd "$SRC"; echo *.SH)`; shift;;
+esac
+if test ! -f "$SRC/$1"; then
+	shift
+fi
+for file in $*; do
+	case "$SRC" in
+	".")
+		case "$file" in
+		*/*)
+			dir=`expr X$file : 'X\(.*\)/'`
+			file=`expr X$file : 'X.*/\(.*\)'`
+			(cd $dir && . ./$file)
+			;;
+		*)
+			. ./$file
+			;;
+		esac
+		;;
+	*)
+		case "$file" in
+		*/*)
+			dir=`expr X$file : 'X\(.*\)/'`
+			file=`expr X$file : 'X.*/\(.*\)'`
+			./mkdirp $dir
+			sh <"$SRC/$dir/$file"
+			;;
+		*)
+			sh <"$SRC/$file"
+			;;
+		esac
+		;;
+	esac
+done
+if test -f "$SRC/config_h.SH"; then
+	if test ! -f config.h; then
+		sh <"$SRC/config_h.SH"
+	fi
+fi

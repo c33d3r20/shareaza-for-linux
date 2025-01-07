@@ -1,0 +1,12 @@
+#!/bin/sh
+if test $# -gt 0; then
+	echo "$@" >msg
+else
+	cat >msg
+fi
+echo "*** WARNING:" >&4
+sed -e 's/^/*** /' <msg >&4
+echo "*** " >&4
+cat msg >>config.msg
+echo " " >>config.msg
+rm -f msg

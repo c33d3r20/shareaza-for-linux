@@ -1,0 +1,55 @@
+#!/bin/sh
+case "$cc" in
+'') ;;
+*)  $rm -f try try.*
+    $cat >try.c <<EOM
+int main(int argc, char *argv[]) {
+  (void) argc;
+  (void) argv;
+  return 0;
+}
+EOM
+    if $cc -o try $ccflags $ldflags try.c; then
+       :
+    else
+        echo "Uh-oh, the C compiler '$cc' doesn't seem to be working." >&4
+        despair=yes
+        trygcc=yes
+        case "$cc" in
+        *gcc*) trygcc=no ;;
+        esac
+        case "`$cc -v -c try.c 2>&1`" in
+        *gcc*) trygcc=no ;;
+        esac
+        if $test X"$trygcc" = Xyes; then
+            if gcc -o try -c try.c; then
+                echo " "
+                echo "You seem to have a working gcc, though." >&4
+                rp="Would you like to use it?"
+                dflt=y
+                if $test -f myread; then
+                    . ./myread
+                else
+                    if $test -f UU/myread; then
+                        . ./UU/myread
+                    else
+                        echo "Cannot find myread, sorry.  Aborting." >&2
+                        exit 1
+                    fi
+                fi  
+                case "$ans" in
+                [yY]*) cc=gcc; ccname=gcc; ccflags=''; despair=no;
+                       $cat *.cbu >checktmp 2>/dev/null
+                       if $contains ccflags checktmp >/dev/null; then
+                           ./warn 4>&4 <<EOM 
+Any previous setting of the C compiler flags has been lost.
+It may be necessary to pass -Dcc=gcc to Configure right away.
+EOM
+                       fi;;
+                esac
+            fi
+        fi
+    fi
+    $rm -f try try.*
+    ;;
+esac

@@ -1,0 +1,188 @@
+/*
+ * Copyright (c) 2003, Raphael Manfredi
+ *
+ * Jmakefile for the core part.
+ *
+ *----------------------------------------------------------------------
+ * This file is part of gtk-gnutella.
+ *
+ *  gtk-gnutella is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  gtk-gnutella is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with gtk-gnutella; if not, write to the Free Software
+ *  Foundation, Inc.:
+ *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *----------------------------------------------------------------------
+ */
+
+SetSubdirs(g2)
+DependSubdirs()
+
+SRC = \
+	alias.c \
+	alive.c \
+	ban.c \
+	bh_download.c \
+	bh_upload.c \
+	bogons.c \
+	bsched.c \
+	clock.c \
+	ctl.c \
+	dh.c \
+	dime.c \
+	dmesh.c \
+	downloads.c \
+	dq.c \
+	dump.c \
+	extensions.c \
+	features.c \
+	fileinfo.c \
+	gdht.c \
+	gen-dmesh_url.c \
+	gen-gnr_stats.c \
+	gen-http_async.c \
+	gen-http_url.c \
+	gen-ignore.c \
+	gen-msg.c \
+	gen-msg_drop.c \
+	geo_ip.c \
+	ggep.c \
+	ggep_type.c \
+	ghc.c \
+	gmsg.c \
+	gnet_stats.c \
+	guess.c \
+	guid.c \
+	hcache.c \
+	hostiles.c \
+	hosts.c \
+	hsep.c \
+	http.c \
+	huge.c \
+	ignore.c \
+	inet.c \
+	ioheader.c \
+	ipp_cache.c \
+	ipv6-ready.c \
+	local_shell.c \
+	matching.c \
+	move.c \
+	mq.c \
+	mq_tcp.c \
+	mq_udp.c \
+	namesize.c \
+	nodes.c \
+	ntp.c \
+	oob.c \
+	oob_proxy.c \
+	parq.c \
+	pcache.c \
+	pdht.c \
+	pproxy.c \
+	publisher.c \
+	qhit.c \
+	qrp.c \
+	routing.c \
+	rx.c \
+	rx_chunk.c \
+	rx_inflate.c \
+	rx_link.c \
+	rx_ut.c \
+	rxbuf.c \
+	search.c \
+	settings.c \
+	share.c \
+	soap.c \
+	sockets.c \
+	spam.c \
+	spam_sha1.c \
+	sq.c \
+	thex_download.c \
+	thex_upload.c \
+	tls_common.c \
+	token.c \
+	topless.c \
+	tsync.c \
+	tth_cache.c \
+	tx.c \
+	tx_chunk.c \
+	tx_deflate.c \
+	tx_dgram.c \
+	tx_link.c \
+	tx_ut.c \
+	udp.c \
+	udp_sched.c \
+	uhc.c \
+	upload_stats.c \
+	uploads.c \
+	urpc.c \
+	verify.c \
+	verify_sha1.c \
+	verify_tth.c \
+	version.c \
+	vmsg.c \
+	whitelist.c
+
+OBJ = \
+|expand f!$(SRC)!
+	!f:\.c=.o \
+-expand \\
+
+
+/* Additional flags for GTK compilation, added in the substituted section */
+++GLIB_CFLAGS $glibcflags
+
+/* Add the GnuTLS flags */
+++GNUTLS_CFLAGS $gnutlscflags
+
+/* Add the Socker flags */
+++SOCKER_CFLAGS $sockercflags
+
+IF = ../if
+GNET_PROPS = gnet_property.h
+
+;# Those extra flags are expected to be user-defined
+CFLAGS = -I$(TOP) -I.. -I$(IF)/gen $(GLIB_CFLAGS) $(GNUTLS_CFLAGS) \
+	$(SOCKER_CFLAGS) -DCORE_SOURCES -DCURDIR=$(CURRENT)
+DPFLAGS = $(CFLAGS)
+
+#define LinkGenInterface(file)		@!\
+LinkSourceFileAlias(file, $(IF)/gen, gen-file)
+
+LinkGenInterface(dmesh_url.c)
+LinkGenInterface(gnr_stats.c)
+LinkGenInterface(http_async.c)
+LinkGenInterface(http_url.c)
+LinkGenInterface(ignore.c)
+LinkGenInterface(msg.c)
+LinkGenInterface(msg_drop.c)
+
+RemoteTargetDependency(libcore.a, $(IF), $(GNET_PROPS))
+NormalLibraryTarget(core, $(SRC), $(OBJ))
+DependTarget()
+
+/*
+ * Ensure we can always compile the local shell as a standalone binary.
+ *
+ * We skip compilation on Windows platforms because the binary requires
+ * more than the simple libc and we just compile the local shell to catch
+ * mistakes through the Travis CI or local UNIX compilations.
+ */
+
+|case d_windows in undef
+all:: gtkg-shell
+
+gtkg-shell: local_shell.c
+	$(CC) -o $@ -DLOCAL_SHELL_STANDALONE $<
+
+local_clean::
+	$(RM) gtkg-shell
+-case

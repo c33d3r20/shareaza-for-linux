@@ -1,0 +1,66 @@
+/*
+ * $Id: Jmakefile 11185 2006-06-25 22:00:15Z cbiere $
+ *
+ * Copyright (c) 2006, Raphael Manfredi
+ *
+ * Jmakefile for the DHT part.
+ *
+ *----------------------------------------------------------------------
+ * This file is part of gtk-gnutella.
+ *
+ *  gtk-gnutella is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  gtk-gnutella is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with gtk-gnutella; if not, write to the Free Software
+ *  Foundation, Inc.:
+ *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *----------------------------------------------------------------------
+ */
+
+;# $Id: Jmakefile 11185 2006-06-25 22:00:15Z cbiere $
+
+SRC = \
+	acct.c \
+	keys.c \
+	kmsg.c \
+	knode.c \
+	kuid.c \
+	lookup.c \
+	publish.c \
+	revent.c \
+	roots.c \
+	routing.c \
+	rpc.c \
+	stable.c \
+	tcache.c \
+	token.c \
+	ulq.c \
+	values.c
+
+OBJ = \
+|expand f!$(SRC)!
+	!f:\.c=.o \
+-expand \\
+
+/* Additional flags for GTK compilation, added in the substituted section */
+++GLIB_CFLAGS $glibcflags
+
+;# Those extra flags are expected to be user-defined
+CFLAGS = -I$(TOP) -I.. $(GLIB_CFLAGS) -DCORE_SOURCES -DCURDIR=$(CURRENT)
+DPFLAGS = $(CFLAGS)
+
+IF = ../if
+GNET_PROPS = gnet_property.h
+
+RemoteTargetDependency(libcore.a, $(IF), $(GNET_PROPS))
+NormalLibraryTarget(dht, $(SRC), $(OBJ))
+DependTarget()
+

@@ -1,0 +1,372 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2004, Raphael Manfredi
+ *
+ * Jmakefile for common sources.
+ *
+ *----------------------------------------------------------------------
+ * This file is part of gtk-gnutella.
+ *
+ *  gtk-gnutella is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  gtk-gnutella is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with gtk-gnutella; if not, write to the Free Software
+ *  Foundation, Inc.:
+ *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *----------------------------------------------------------------------
+ */
+
+;# $Id$
+
+/*
+ * Generation of bit_array.[ch] and bit_field.[ch] from a generic template.
+ */
+
+#define BitGenericCat(type)						@!\
+bit_/**/type.h: bit_/**/type.ht bit_generic.ht	@@\
+	$(TOP)/scripts/generic-cat bit_/**/type.ht bit_generic.ht type >$@ @!\
+												@!\
+bit_/**/type.c: bit_generic.ct					@@\
+	$(TOP)/scripts/generic-cat /dev/null bit_generic.ct type >$@ @!\
+												@!\
+all:: bit_/**/type.h bit_/**/type.c				@!\
+depend:: bit_/**/type.h bit_/**/type.c			@!\
+local_realclean::								@@\
+	$(RM) bit_/**/type.h bit_/**/type.c
+
+BitGenericCat(array)
+BitGenericCat(field)
+
+#define HashGenericCat(type,sig,TYPE)			@!\
+h/**/type.h: hgeneric.ht						@@\
+	$(TOP)/scripts/generic-pp /dev/null hgeneric.ht type sig TYPE >$@	@!\
+												@!\
+h/**/type.c: hgeneric.ct						@@\
+	$(TOP)/scripts/generic-pp /dev/null hgeneric.ct type sig TYPE >$@	@!\
+												@!\
+all:: h/**/type.h h/**/type.c					@!\
+depend:: h/**/type.h h/**/type.c				@!\
+local_realclean::								@@\
+	$(RM) h/**/type.h h/**/type.c
+
+HashGenericCat(table,ckeyval,TABLE)
+HashGenericCat(set,cdata,SET)
+
+LSRC = \
+	adns.c \
+	aging.c \
+	aje.c \
+	alloca.c \
+	aq.c \
+	arc4random.c \
+	argv.c \
+	ascii.c \
+	atio.c \
+	atoms.c \
+	balloc.c \
+	barrier.c \
+	base16.c \
+	base32.c \
+	base64.c \
+	bfd_util.c \
+	bg.c \
+	bigint.c \
+	bit_array.c \
+	bit_field.c \
+	bsearch.c \
+	bstr.c \
+	buf.c \
+	chi2.c \
+	ckalloc.c \
+	cmwc.c \
+	cobs.c \
+	compat_gettid.c \
+	compat_misc.c \
+	compat_pause.c \
+	compat_pio.c \
+	compat_poll.c \
+	compat_sendfile.c \
+	compat_setjmp.c \
+	compat_sleep_ms.c \
+	compat_statvfs.c \
+	compat_un.c \
+	compat_usleep.c \
+	concat.c \
+	cond.c \
+	constants.c \
+	cpufreq.c \
+	cq.c \
+	crash.c \
+	crc.c \
+	cstr.c \
+	dam.c \
+	dbmap.c \
+	dbmw.c \
+	dbstore.c \
+	dbus_util.c \
+	debug.c \
+	dl_util.c \
+	dualhash.c \
+	elist.c \
+	entropy.c \
+	erbtree.c \
+	eslist.c \
+	etree.c \
+	eval.c \
+	event.c \
+	evq.c \
+	exit.c \
+	exit2str.c \
+	fast_assert.c \
+	fd.c \
+	file.c \
+	file_object.c \
+	filehead.c \
+	filelock.c \
+	filename.c \
+	float.c \
+	fragcheck.c \
+	frand.c \
+	fs_free_space.c \
+	ftw.c \
+	gen-iprange.c \
+	gentime.c \
+	getcpucount.c \
+	getdate.c \
+	getgateway.c \
+	gethomedir.c \
+	getline.c \
+	getphysmemsize.c \
+	glib-missing.c \
+	glog.c \
+	gnet_host.c \
+	halloc.c \
+	hash.c \
+	hashing.c \
+	hashlist.c \
+	hashtable.c \
+	header.c \
+	hevset.c \
+	hikset.c \
+	host_addr.c \
+	hset.c \
+	hstrfn.c \
+	htable.c \
+	html.c \
+	http_range.c \
+	idtable.c \
+	inputevt.c \
+	iovec.c \
+	iprange.c \
+	ipset.c \
+	iso3166.c \
+	launch.c \
+	leak.c \
+	list.c \
+	listener.c \
+	log.c \
+	magnet.c \
+	malloc.c \
+	map.c \
+	mem.c \
+	mempcpy.c \
+	memusage.c \
+	mime_type.c \
+	mingw32.c \
+	misc.c \
+	mtwist.c \
+	mutex.c \
+	nid.c \
+	nv.c \
+	offtime.c \
+	ohash_table.c \
+	omalloc.c \
+	once.c \
+	options.c \
+	ostream.c \
+	pagetable.c \
+	palloc.c \
+	parse.c \
+	path.c \
+	patricia.c \
+	pattern.c \
+	plist.c \
+	pmsg.c \
+	pow2.c \
+	product.c \
+	progname.c \
+	prop.c \
+	pslist.c \
+	qlock.c \
+	rand31.c \
+	random.c \
+	rbtree.c \
+	regex.c \
+	ripening.c \
+	rwlock.c \
+	sectoken.c \
+	semaphore.c \
+	sequence.c \
+	setproctitle.c \
+	sha1.c \
+	shuffle.c \
+	signal.c \
+	slist.c \
+	smsort.c \
+	sorted_array.c \
+	spinlock.c \
+	spopen.c \
+	stacktrace.c \
+	stats.c \
+	str.c \
+	stringify.c \
+	strpcpy.c \
+	strtok.c \
+	strvec.c \
+	symbols.c \
+	symtab.c \
+	tea.c \
+	teq.c \
+	thread.c \
+	tiger.c \
+	tigertree.c \
+	timestamp.c \
+	tm.c \
+	tmalloc.c \
+	tokenizer.c \
+	tqsort.c \
+	tsig.c \
+	url.c \
+	urn.c \
+	utf8.c \
+	vector.c \
+	vendors.c \
+	vmea.c \
+	vmm.c \
+	vsort.c \
+	waiter.c \
+	walloc.c \
+	watcher.c \
+	wd.c \
+	well.c \
+	win32dlp.c \
+	wordvec.c \
+	wq.c \
+	xmalloc.c \
+	xslist.c \
+	xsort.c \
+	xsort_data.c \
+	xxtea.c \
+	zalloc.c \
+	zlib_util.c
+
+/* Object files are derived from source files */
+LOBJ = \
+|expand f!$(LSRC)!
+	!f:\.c=.o \
+-expand \\
+
+/* Additional flags for glib compilation, added in the substituted section */
+++GLIB_CFLAGS $glibcflags
+
+/* Additional flags for dbus compilation, added in the substituted section */
+++DBUS_CFLAGS $dbuscflags
+
+;# Those extra flags are expected to be user-defined
+CFLAGS = -I$(TOP) -I.. $(GLIB_CFLAGS) $(DBUS_CFLAGS) -DCURDIR=$(CURRENT)
+DPFLAGS = $(CFLAGS)
+
+NormalLibraryTarget(shared,$(LSRC),$(LOBJ))
+DependTarget()
+
+/*
+ * Since getdate.c is in CVS, they can compile even if they lack yacc.
+ * Do that only for developpers (the ".package" file is required to be able
+ * to run "metaconfig").
+ */
+getdate.c: getdate.y
+	-@if test -f $(TOP)/.package; then \
+		echo "	$(YACC) $(JYFLAGS) $<"; \
+		$(YACC) $(JYFLAGS) $<; \
+		echo "	$(MV) y.tab.c $@"; \
+		$(MV) y.tab.c $@; else touch $@; fi
+
+getdate: getdate.c
+	$(CC) -o $@ $(JCFLAGS) -DTEST $< libshared.a $(LIBS)
+
+;#
+;# Floating point formatting tests
+;#
+;# The "bad-fixed" target show formatting errors: the output file MUST be empty
+;# or there are bugs in the floating point formatting routine.
+;#
+
+++GLIB_LDFLAGS $glibldflags
+++COMMON_LIBS $libs
+
+LDFLAGS =
+LIBS = $(GLIB_LDFLAGS) $(COMMON_LIBS)
+IF = ../if
+
+floats: floats.bz2
+	bzip2 -c -d floats.bz2 >$@
+
+float-dragon.out: float-dragon_out.bz2
+	bzip2 -c -d float-dragon_out.bz2 >$@
+
+bad-fixed: float-test floats
+	./float-test floats compare >$@
+
+bad-free: float-test floats float-dragon.out
+	./float-test floats dragon | diff -u - float-dragon.out >$@
+
+float-times: float-test floats
+	uname -a >$@
+	echo -n "base:    " >>$@
+	sh -c "time ./float-test floats base" >>$@ 2>&1
+	echo -n "sprintf: " >>$@
+	sh -c "time ./float-test floats sprintf" >>$@ 2>&1
+	echo -n "printf:  " >>$@
+	sh -c "time ./float-test floats printf > /dev/null" >>$@ 2>&1
+	echo -n "fixed:   " >>$@
+	sh -c "time ./float-test floats fixed > /dev/null" >>$@ 2>&1
+	echo -n "free:    " >>$@
+	sh -c "time ./float-test floats dragon > /dev/null" >>$@ 2>&1
+
+ftw-check: ftw-test
+	./ftw-mktree
+	./ftw-test -s ftw-root | diff -u - ftw-root.out >$@
+
+local_clean::
+	$(RM) floats float-dragon.out bad-fixed float-times ftw-check
+	./ftw-mktree -r
+
+#define NormalTestTarget(base)	@!\
+NormalProgramLibTarget(base-test, base-test.c, base-test.o, libshared.a)
+
+NormalTestTarget(filelock)
+NormalTestTarget(float)
+NormalTestTarget(ftw)
+NormalTestTarget(launch)
+NormalTestTarget(pattern)
+NormalTestTarget(random)
+NormalTestTarget(sort)
+NormalTestTarget(spopen)
+NormalTestTarget(stack)
+NormalTestTarget(stat)
+NormalTestTarget(thread)
+
+#define LinkGenInterface(file)	@!\
+LinkSourceFileAlias(file, $(IF)/gen, gen-file)
+
+LinkGenInterface(iprange.c)
+

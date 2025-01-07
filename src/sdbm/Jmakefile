@@ -1,0 +1,112 @@
+/*
+ * Copyright (c) 2008, Raphael Manfredi
+ *
+ * Jmakefile for SDBM.
+ *
+ *----------------------------------------------------------------------
+ * This file is part of gtk-gnutella.
+ *
+ *  gtk-gnutella is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  gtk-gnutella is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with gtk-gnutella; if not, write to the Free Software
+ *  Foundation, Inc.:
+ *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *----------------------------------------------------------------------
+ */
+
+SRC = \
+	big.c \
+	chkpage.c \
+	hash.c \
+	loose.c \
+	lru.c \
+	pair.c \
+	rebuild.c \
+	sdbm.c \
+	tmp.c
+
+OBJ = \
+|expand f!$(SRC)!
+	!f:\.c=.o \
+-expand \\
+
+/* Additional flags for GTK compilation, added in the substituted section */
+++GLIB_CFLAGS $glibcflags
+
+SDBM_FLAGS = -DSDBM -DDUFF
+
+;# Those extra flags are expected to be user-defined
+CFLAGS = -I$(TOP) -I.. $(GLIB_CFLAGS) $(SDBM_FLAGS) -DCURDIR=$(CURRENT)
+DPFLAGS = $(CFLAGS)
+
+NormalLibraryTarget(sdbm, $(SRC), $(OBJ))
+DependTarget()
+
+DBA_SRC = \
+	dba.c \
+	util.c
+
+DBU_SRC = \
+	dbu.c \
+	util.c
+
+DBE_SRC = \
+	dbe.c \
+	util.c
+
+DBT_SRC = \
+	dbt.c \
+	util.c
+
+DBA_OBJ = \
+|expand f!$(DBA_SRC)!
+	!f:\.c=.o \
+-expand \\
+
+DBU_OBJ = \
+|expand f!$(DBU_SRC)!
+	!f:\.c=.o \
+-expand \\
+
+DBE_OBJ = \
+|expand f!$(DBE_SRC)!
+	!f:\.c=.o \
+-expand \\
+
+DBT_OBJ = \
+|expand f!$(DBT_SRC)!
+	!f:\.c=.o \
+-expand \\
+
+
+++GLIB_LDFLAGS $glibldflags
+++COMMON_LIBS $libs
+
+LDFLAGS =
+LIBS = -L. -lsdbm -L../lib -lshared $(GLIB_LDFLAGS) $(COMMON_LIBS)
+
+dbu dbe dbt: libsdbm.a
+RemoteTargetDependency(dba dbu dbe dbt, ../lib, libshared.a)
+
+NormalProgramTarget(dba, $(DBA_SRC), $(DBA_OBJ))
+NormalProgramTarget(dbu, $(DBU_SRC), $(DBU_OBJ))
+NormalProgramTarget(dbe, $(DBE_SRC), $(DBE_OBJ))
+NormalProgramTarget(dbt, $(DBT_SRC), $(DBT_OBJ))
+
+;#
+;# Tests
+;#
+
+sdbm-test: dbt
+
+test: sdbm-test
+	time ./sdbm-test

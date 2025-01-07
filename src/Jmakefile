@@ -1,0 +1,168 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2003, Raphael Manfredi
+ *
+ * Jmakefile for gtk-gnutella.
+ *
+ *----------------------------------------------------------------------
+ * This file is part of gtk-gnutella.
+ *
+ *  gtk-gnutella is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  gtk-gnutella is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with gtk-gnutella; if not, write to the Free Software
+ *  Foundation, Inc.:
+ *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *----------------------------------------------------------------------
+ */
+
+;# $Id$
+
+all::		/* So that default target is not clobber! */
+
+SetSubdirs(bin core shell dht lib ui if sdbm upnp xml)
+DependSubdirs()
+
+SRC = main.c
+OBJ = main.o
+
+/* Additional flags for GTK compilation, added in the substituted section */
+++GTK_CFLAGS $gtkcflags
+++GTK_LDFLAGS $gtkldflags
+
+/* Add the dbus flags */
+++DBUS_CFLAGS $dbuscflags
+++DBUS_LDFLAGS $dbusldflags
+
+/* Add the GnuTLS flags */
+++GNUTLS_CFLAGS $gnutlscflags
+++GNUTLS_LDFLAGS $gnutlsldflags
+
+/* Add the socker flags */
+++SOCKER_CFLAGS $sockercflags
+++SOCKER_LDFLAGS $sockerldflags
+
+/*
+ * Due to cross-referencing between the GUI and the core, libcore.a wraps
+ * the GUI libraries and the libgtk-common.a library wraps the libgtkx.a
+ * so that all functions can be resolved properly.
+ */
+
+EXTRA = \
+	if/bridge/ui2c.o \
+	if/bridge/c2ui.o \
+	if/gnet_property.o \
+	if/gui_property.o
+
+CFLAGS = -I.. -I. \
+	$(GTK_CFLAGS) \
+	$(DBUS_CFLAGS) \
+	$(GNUTLS_CFLAGS) \
+	$(SOCKER_CFLAGS) \
+	-DCURDIR=$(CURRENT)
+
+DPFLAGS = $(CFLAGS)
+LDFLAGS = \
+	-Lshell -lshell \
+	-Lupnp -lupnp \
+	-Ldht -ldht \
+	-Lcore -lcore \
+	-Lcore/g2 -lg2 \
+|case d_headless in undef
+	-Lui/gtk -lgtk-common -lgtkx -lgtk-common \
+-case
+	-Lxml -lxml \
+	-Llib -lshared \
+	-Lsdbm -lsdbm -lshared \
+	$(GTK_LDFLAGS) $(DBUS_LDFLAGS) $(GNUTLS_LDFLAGS) $(SOCKER_LDFLAGS)
+
+RemoteTargetDependency(gtk-gnutella, lib, libshared.a)
+RemoteTargetDependency(gtk-gnutella, core, libcore.a)
+RemoteTargetDependency(gtk-gnutella, core/g2, libg2.a)
+RemoteTargetDependency(gtk-gnutella, shell, libshell.a)
+RemoteTargetDependency(gtk-gnutella, dht, libdht.a)
+RemoteTargetDependency(gtk-gnutella, sdbm, libsdbm.a)
+RemoteTargetDependency(gtk-gnutella, upnp, libupnp.a)
+RemoteTargetDependency(gtk-gnutella, xml, libxml.a)
+|case d_headless in undef
+RemoteTargetDependency(gtk-gnutella, ui/gtk, libgtk-common.a)
+RemoteTargetDependency(gtk-gnutella, ui/gtk, libgtkx.a)
+-case
+RemoteTargetDependency(gtk-gnutella, if/bridge, ui2c.o)
+RemoteTargetDependency(gtk-gnutella, if/bridge, c2ui.o)
+RemoteTargetDependency(gtk-gnutella, if, gnet_property.o)
+RemoteTargetDependency(gtk-gnutella, if, gui_property.o)
+RemoteTargetDependency(main.o, if, gnet_property.h)
+RemoteTargetDependency(main.o, if, gui_property.h)
+RemoteTargetDependency(main.o, lib, htable.h)
+
+DependTarget()
+NormalProgramTarget(gtk-gnutella, $(SRC), $(OBJ) $(EXTRA))
+InstallProgram(gtk-gnutella, $(BINDIR))
+InstallManPage(gtk-gnutella, $(MANSRC))
+
+/*
+ * Update the "revision.h" file that contains the current SVN version.
+ *
+ * This file is not removed because its presence is required for the
+ * proper dependency line generation of the files that include it.
+ * For instance, if version.c includes it and it is missing, there might
+ * be no version.o dependencies included in the Makefile.
+ *
+ * Directories containing a file including "revision.h" must have the
+ * following line in their Jmakefile:
+ *
+ *    RemoteTargetDependency(file.o, $(TOP)/src, revision.h)
+ *
+ * where in this example it is "file.c" that includes "revision.h".
+ */
+
+main.o: revision.h
+
+revision.h: .FORCE
+	$(TOP)/scripts/git-revision $(TOP) $@
+
+/*
+ * Generate a gtk-gnutella.nm file containing the executable's symbols.
+ *
+ * This allows the installed program to be stripped whilst retaining the
+ * ability to get symbolic stack traces.
+ */
+
+AllTarget(gtk-gnutella.nm)
+RemoteTargetDependency(gtk-gnutella.nm, bin, sha1sum)
+
+gtk-gnutella.nm: gtk-gnutella
+	$(TOP)/scripts/nm-list gtk-gnutella$(_EXE) $(NM) > $@
+
+InstallNonExec(gtk-gnutella.nm, $(ARCHLIB))
+
+/*
+ * Local Coverity builds
+ */
+
+coverity.tgz: .FORCE
+	@if cov-build 2>/dev/null | grep Coverity >/dev/null 2>&1; \
+	then \
+		: ok; \
+	else \
+		echo "cov-build not found in PATH"; \
+		exit 1; \
+	fi
+	$(MAKE) realclean
+	$(MAKE) depend
+	cov-build --dir cov-int $(MAKE) gtk-gnutella.nm
+	tar czf $@ cov-int
+
+local_realclean::
+	$(RM) -rf cov-int
+	$(RM) -f coverity.tgz

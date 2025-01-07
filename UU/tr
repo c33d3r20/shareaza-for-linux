@@ -1,0 +1,6 @@
+#!/bin/sh
+case "$1$2" in
+'[A-Z][a-z]') LC_ALL=C exec /usr/bin/tr '[:upper:]' '[:lower:]';;
+'[a-z][A-Z]') LC_ALL=C exec /usr/bin/tr '[:lower:]' '[:upper:]';;
+esac
+LC_ALL=C exec /usr/bin/tr "$@"

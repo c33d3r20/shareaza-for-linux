@@ -1,0 +1,90 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2003, Raphael Manfredi
+ *
+ * Jmakefile for pixmaps.
+ *
+ *----------------------------------------------------------------------
+ * This file is part of gtk-gnutella.
+ *
+ *  gtk-gnutella is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  gtk-gnutella is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with gtk-gnutella; if not, write to the Free Software
+ *  Foundation, Inc.:
+ *      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ *----------------------------------------------------------------------
+ */
+
+;# $Id$
+
+PIXMAPS = \
+	arrow_down.xpm \
+	arrow_up.xpm \
+	booklib.xpm \
+	booksha.xpm \
+	bookshav.xpm \
+	booktth.xpm \
+	booktthv.xpm \
+	chip.xpm \
+	clanbomber_red.xpm \
+	clanbomber_yellow.xpm \
+	download.xpm \
+	exit.xpm \
+	filter.xpm \
+	firewall.xpm \
+	firewall_punchable.xpm \
+	firewall_tcp.xpm \
+	firewall_udp.xpm \
+	firewall_udp_punchable.xpm \
+	freeze.xpm \
+	go_back.xpm \
+	hungup.xpm \
+	icon.16x16.xpm \
+	icon.48x48.xpm \
+	icon.xpm \
+	leaf.xpm \
+	legacy.xpm \
+	magnet.16x16.png \
+	magnet.32x32.png \
+	magnet.64x64.png \
+	natpmp.xpm \
+	no_firewall.xpm \
+	no_listening.xpm \
+	offline.xpm \
+	online.xpm \
+	pause.xpm \
+	save.xpm \
+	smallserver.xpm \
+	star-black.xpm \
+	star-blue.xpm \
+	star-green.xpm \
+	star-red.xpm \
+	star-violet.xpm \
+	star-yellow.xpm \
+	stock_form-time-field-16.xpm \
+	thaw.xpm \
+	ultra.xpm \
+	upload-red.xpm \
+	upload-yellow.xpm \
+	upload.xpm \
+	upnp-unusable.xpm \
+	upnp.xpm \
+	warning.xpm
+
+
+all::
+
+INSTALLFLAGS = -m 444
+
+InstallMultiple($(PIXMAPS), $(PRIVLIB)/pixmaps)
+

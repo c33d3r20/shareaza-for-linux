@@ -1,0 +1,267 @@
+This version of sdbm merely has all the dbm_* names translated to sdbm_*
+so that we can link ndbm and sdbm into the same executable.  (It also has
+the bad() macro redefined to allow a zero-length key.)
+
+
+Fri Apr 15 10:15:30 EDT 1994.
+
+Additional portability/configuration changes for libsdbm by Andy Dougherty
+doughera@lafayette.edu.
+
+
+Mon Mar 22 03:24:47 PST 1999.
+
+sdbm_exists added to the library by Russ Allbery <rra@stanford.edu>.
+
+
+Fri Aug  8 18:29:39 CEST 2008
+
+Taken out of the Perl 5.10.0 distribution in /ext/SDBM_File/sdbm by
+Raphael Manfredi <Raphael_Manfredi@pobox.com> and slightly adapted
+for inclusion in gtk-gnutella.
+
+The file sdbm.h was heavily edited to remove perl-isms, and the sdbm.c
+file changed slightly to add gtk-gnutella-isms.
+
+The standalone C programs do not compile as-is but were left to keep the
+integrity of the original sdbm distribution.
+
+
+Thu Aug 14 09:29:46 CEST 2008
+
+Christian Biere brought up SDBM distribution to gtk-gnutella standards.
+
+ * Prefixed all public SDBM macros with "DBM_".
+ * Removed "register" keyword.
+ * Removed unnecessary "(void)" in front of function calls.
+ * struct DBM:
+   * Keep implementation details hidden in sdbm.c.
+   * Sorted members by size for compactness.
+   * Allocate extra buffers for pagbuf and dirbuf
+     because the code expects these to be aligned
+     for "short int".
+ * Replaced macros by (static inline) functions where possible.
+ * Removed comma-operator. This should be reserved to macros
+   or the like where it may be necessary and not used to save
+   lines or look fancy.
+ * sdbm_store(): val.dptr must be a valid pointer and non-NULL
+   because the internal code uses memcpy() etc. without further
+   checks.
+ * Added sdbm_is_storable() to avoid integer overflows when
+   calculating the required space.
+ * sdbm_open():
+   * Compose the filenames properly.
+   * Additional file type and size checks.
+
+
+Thu Aug 14 09:29:46 CEST 2008
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Fixed bug in getnext(), which flagged an I/O error when iterating over
+  an empty database.
+* Indented all comments within a function to match general gtk-gnutella style.
+* Added trailing vi comments for VIM.
+
+
+Wed Apr 29 23:58:57 CEST 2009
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Factorized page reading and flushing into fetch_pagbuf() and flush_pagbuf().
+* All functions returning a boolean had their return type changed from int
+  to gboolean to make that explicit.  Constants TRUE and FALSE replace 1 and 0.
+* Protected getnext() against DB modifications during the key traversal. This
+  is forbidden and will now trigger an assertion failure.
+* Enhanced chkpage() to ensure ino[0] is always an even number and that offsets
+  never point within the ino[] zone.
+* Added sdbm_deletekey() to delete the current key during traversals.
+* Added getnval() to get the n-th value from current page and sdbm_value() to
+  return the current value during key iteration.
+* Added sdbm_set_name() and sdbm_name(), for logging purposes.
+* Call g_warning() unconditionally on low-level I/O errors to leave a trail
+  when things start to go wrong.
+
+
+Fri May  1 21:46:55 CEST 2009
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Modified dba's output to show the space used by keys and values, and to
+  highlight pages with low free space (unable to add a new key/value pair,
+  given the average size of the existing entries on the page).
+* Added LRU page cache, activated via "tune.h".
+* Added sdbm_set_cache() to tune the LRU cache size, sdbm_set_wdelay() to tune
+  whether the cache should defer write operations (on non-important operations).
+* Added sdbm_set_volatile() to flag the DB as not outliving an sdbm_close(),
+  in which case even important bookkeeping operations can have their write
+  deferred.
+* Added statistics counters and final logging for:
+  - amount of page reads and writes
+  - amount of dir reads and writes
+  - amount of block number hits for page and dir (accesses to current page)
+  - amount of LRU page read cache hits (when LRU is activated)
+  - amount of LRU page write cache hits (when LRU write-back is activated)
+* Optimized seepair() slightly.
+
+
+Tue Sep 22 22:27:36 CEST 2009
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Optimized sdbm_store(DBM_REPLACE) when the new value being written has the
+  same size as the old value: the new value is written in-place without having
+  to update anything else on the page.
+* Enforce errno = 0 on sdbm_delete() for a non-existing key.
+* Optimized sdbm_deletekey() to prevent reading the key.
+* Added sdbm_replace() to update a possibly existing key and get to know
+  whether the key existed or whether it was created.
+* Whenever an I/O error occurs, put the database in read-only mode by denying
+  further updates until they call sdbm_clearerr().
+* In the advent of an I/O error during page splits, undo the operation and
+  restore a consistent disk image, as if the last (incomplete) split had never
+  been attempted.
+* Smarter LRU page eviction in case we get an I/O error when flushing a dirty
+  page: try to see whether we can reuse a slot from a clean page instead, to
+  defer the time when we have no other choice but to raise an I/O error.
+* Adapted dbu so that it can compile with the new sdbm library and can properly
+  initialize the memory layer from gtk-gnutella's library, on which this
+  version of sdbm relies.
+* Added support for large keys and values, offloaded to an extra .dat file.
+  The sum of key and value data cannot exceed 250 KiB, currently.  Large keys
+  should be avoided if possible because they slow down lookups.
+
+
+Fri Oct  2 19:18:47 CEST 2009
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Only turn database read-only after a write I/O error occurs.
+* Added sdbm_shrink() to truncate files if trailing parts are empty.
+* Added the "truncate" (aka "shrink") command to dbu and made "insert" work.
+
+
+Thu Oct 14 00:21:01 CEST 2010
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Iterations through sdbm_firstkey() / sdbm_nextkey() now skip disk pages
+  that can't be read for some reason.
+* Added sdbm_clear() to remove all entries from the opened database.
+* Added counter for corrupted pages, read and write errors, split write
+  errors and unfixable split errors.
+* Will now unconditionally emit warnings at SDBM close time if errors occurred
+  during operations.
+* Added sdbm_firstkey_safe() to activate additional checks during traversal,
+  making sure all the keys belong to their page (i.e. that the .dir and .pag
+  files are consistent), deleting all non-belonging keys.
+
+
+Wed Jun  1 18:49:58 CEST 2011
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Extended sdbm_firstkey_safe() to also activate validation of big keys and
+  values: checking that the blocks are properly allocated in the .dat file
+  and that no allocated block is leaking (i.e. is indeed referred by a key or
+  value) nor is shared (i.e. referred by several big keys or values).
+
+
+Mon Nov 21 22:54:22 CET 2011
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Ported "dbe" to SDBM (was written for NDBM) and added options to display
+  keys and values as hexadecimal, and input/send values from/to files,
+  in binary or hexadecimal format.
+* Added "dbt", a database testing / benchmarking tool to check the influence
+  of various configuration options (deferred writes, LRU cache size, usage
+  of large keys, etc...).
+* Added -s switch to "dba" to only print the trailing summary.
+* Turned some g_warning() calls into g_critical() for conditions that can
+  damage the integrity of the database or cause data loss / corruption.
+* Fixed page splits to make them work with large keys.
+* Added detection of regular API usage to store/fetch/delete entries from
+  within an iteration loop.
+
+
+Sun Oct 21 14:52:42 CEST 2012
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Fixed SDBM iteration in the presence of unflushed dirty LRU pages.
+
+
+Thu Nov 22 20:30:18 CET 2012
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Made sdbm_close() unlink files if database was marked volatile.
+* Added sdbm_unlink() to close and unlink database files.
+* Added sdbm_get_wdelay(), sdbm_get_cache() and sdbm_is_volatile().
+* Added sdbm_endkey() to abort key iteration early.
+* Added sdbm_rebuild() to reconstruct the whole database, hopefully compacting
+  its disk representation by filling low-order pages.
+* Added -f switch to "dba" to only print filled pages.
+
+
+Sat Nov 24 19:51:38 CET 2012
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Loudly warn when sdbm_deletekey() or sdbm_value() are called outside an
+  iteration loop.
+* Made sdbm_rebuild() more fault-tolerant for things we cannot fix, such
+  as unreadable big keys/values or duplicate keys.
+* Made sdbm_nextkey() fail with errno = ENOENT if called outside an iteration.
+* Inconsistencies in big keys / values are flagged with errno = EFAULT but
+  do not trigger an I/O error condition unless we actually get an error reading
+  or writing data to the disk.
+
+Tue Sep 24 21:41:05 CEST 2013
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Made the external API thread-safe, when sdbm_thread_safe() is called.
+* Added support for critical sections with sdbm_lock() and sdbm_unlock().
+* Explicitly forbid concurrent iterators to run on a thread-safe handle since
+  the database does not remain locked between iterator calls.
+
+Thu Sep 11 22:00:38 CEST 2014
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Made SDBM API locks be queueing locks instead of mutexes.
+* Added sdbm_foreach() and sdbm_foreach_remove() convenience routines.
+
+Sat Sep 19 10:18:22 CEST 2015
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Changed sdbm_value(), sdbm_firstkey() and friends to not copy the datum even
+  in thread-safe mode.  Indeed, iterators cannot run concurrently and therefore
+  it is required to lock the database in thread-safe mode, making copying pure
+  overhead.
+* Added sdbm_ref() and sdbm_unref() to allow sharing of a DBM descriptor
+  among threads and prevent early disappearing of that descriptor.  Prefer
+  use of sdbm_unref() to sdbm_close() when sharing!
+* Added support for "loose iterations", which run over the database without
+  grabbing the lock for the whole duration of the traversal, at the price of
+  some missed keys or duplicate processing.
+* Added sdbm_count(), sdbm_delta() and sdbm_delta_reset() to make it easy
+  for an application to track the actual count of items in the database.
+
+Fri Oct 16 00:13:20 CEST 2015
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Added sdbm_rebuild_async() to asynchronously reconstruct the database
+  from a separate thread whilst other concurrent access to the same database
+  are possible from other threads.
+
+Mon Nov 14 18:39:39 CET 2016
+
+Changes from Raphael Manfredi <Raphael_Manfredi@pobox.com>:
+
+* Added a .tmp file to be able to remove left-over temporary files created
+  during rebuilds, should the old process have been interrupted in the middle.

@@ -1,0 +1,143 @@
+?X:
+?X: Modified to show a summary of the configuration options
+?X:
+?RCS: $Id$
+?RCS:
+?RCS: @COPYRIGHT@
+?RCS:
+?X: 
+?X: This unit serves as the goal which forces make to choose all the units that
+?X: ask questions.  The $W on the ?MAKE: line is the list of all symbols wanted.
+?X: To force any unit to be included, copy this unit to your private U directory
+?X: and add the name of the unit desired to the ?MAKE: dependency line.
+?X: 
+?MAKE:End: $W Framepointer cat gtkversion d_remotectrl \
+	d_deflate d_inflate i_zlib gtkgversion glibversion d_enablenls \
+	Sendfile64 d_dbus d_gnutls d_headless \
+	d_iconv d_glib d_gtk Alpha_mieee GCC_pipe
+?MAKE:	-pick add $@ %<
+?LINT:use $W
+?T:glib_used frontend remote nls zlib iconv
+?T:gnutls dbus bailout aptget yum
+: end of configuration questions
+echo " "
+echo "End of configuration questions."
+
+glib_used=glib-${glibversion}.x
+frontend="GTK1"
+case "$gtkversion" in
+2) frontend="GTK2";;
+esac
+
+case "$d_headless" in
+"$define") frontend="none";;
+esac
+
+dbus=no
+case "$d_dbus" in
+"$define") dbus=yes;;
+esac
+
+zlib=no
+case "$i_zlib$d_deflate$d_inflate" in
+"$define$define$define") zlib=yes;;
+esac
+
+gnutls=no
+case "$d_gnutls" in
+"$define") gnutls=yes;;
+esac
+
+remote=no
+case "$d_remotectrl" in
+"$define") remote=yes;;
+esac
+
+nls=no
+case "$d_enablenls" in
+"$define") nls=yes;;
+esac
+
+iconv=no
+case "$d_iconv" in
+"$define") iconv=yes;;
+esac
+
+which apt-get >/dev/null 2>&1 && aptget=echo || aptget=:
+which yum >/dev/null 2>&1 && yum=echo || yum=:
+
+$cat >&4 <<EOM
+
+Feature Summary (Version $gtkgversion):
+-------------------------------------------------
+GLib version                       : $glib_used
+GUI front-end                      : $frontend
+GnuTLS support                     : $gnutls
+NLS (Native Language Support)      : $nls
+DBus support (experimental)        : $dbus
+Remote Shell Interface (deprecated): $remote
+-------------------------------------------------
+EOM
+
+bailout=no
+
+case "$d_glib" in
+"$undef")
+	bailout=yes
+	echo 'ERROR: Cannot compile against GLib. Library or header files might be missing.' >&4
+	case "$glibversion" in
+	1) $aptget 'ADVICE: Run "apt-get install libglib1.2-dev".' >&4
+	   $yum 'ADVICE: Run "yum install glib-devel".' >&4
+	;;
+	2) $aptget 'ADVICE: Run "apt-get install libglib2.0-dev".' >&4
+	   $yum 'ADVICE: Run "yum install glib2-devel".' >&4
+	;;
+	esac
+	;;
+esac
+
+if [ "$zlib" != yes ]; then
+	bailout=yes
+	echo 'ERROR: Cannot compile against zlib. Library or header files might be missing.' >&4
+	$aptget 'ADVICE: Run "apt-get install zlib1g-dev".' >&4
+	$yum 'ADVICE: Run "yum install zlib-devel".' >&4
+fi
+
+if [ "$iconv" != yes ]; then
+	bailout=yes
+	echo 'ERROR: Cannot find iconv(). Library or header files might be missing.' >&4
+fi
+
+if [ "$frontend" != none ]; then
+case "$d_gtk" in
+"$undef")
+	bailout=yes
+	echo 'ERROR: Cannot compile against Gtk+. Library or header files might be missing.' >&4
+	case "$gtkversion" in
+	1) $aptget 'ADVICE: Run "apt-get install libgtk1.2-dev".' >&4
+	   $yum 'ADVICE: Run "yum install gtk-devel".' >&4
+	;;
+	2) $aptget 'ADVICE: Run "apt-get install libgtk2.0-dev".' >&4
+	   $yum 'ADVICE: Run "yum install gtk2-devel".' >&4
+	;;
+	esac
+	;;
+esac
+fi
+
+if [ "$bailout" != no ]; then
+	cat >&4 <<EOM
+If you need help to resolve the compile problem, please send a mail to
+
+	gtk-gnutella-devel (at) lists.sourceforge.net
+
+or submit a bug report here:
+
+	http://sourceforge.net/tracker/?atid=104467&group_id=4467&func=browse
+
+You might also want to have a look at the README files in advance.
+EOM
+
+	exit 1
+fi
+

@@ -1,0 +1,86 @@
+?RCS: $Id$
+?RCS:
+?RCS: @COPYRIGHT@
+?RCS:
+?MAKE:dbusconfig dbuscflags dbusldflags d_dbus: awk cat Myread Setvar
+?MAKE:	-pick add $@ %<
+?S:d_dbus:
+?S: This variable determines if HAS_DBUS will be defined.
+?S:.
+?S:dbusconfig:
+?S: BLAH BLAH BLAH.
+?S:.
+?S:dbuscflags:
+?S:	This variable holds the compiler flags required to compile with dbus.
+?S:.
+?S:dbusldflags:
+?S:	This variable holds the linker flags required to link against dbus.
+?S:.
+?C:HAS_DBUS:
+?C: This symbol is defined when dbus is present
+?C:.
+?H:#$d_dbus HAS_DBUS  /**/
+?H:.
+?T:modver version dbus vint dbusconfig
+?LINT: set d_dbus
+: how can we find information about dbus?
+dbus="$undef"
+dbuscflags=
+dbusldflags=
+dbusconfig='false'
+modver=''
+
+case "$d_dbus" in
+"$undef") ;;
+*)
+	echo " "
+	echo "Checking how we can gather information about dbus..." >&4
+	if pkg-config dbus-1 --cflags >/dev/null 2>&1; then
+		dbusconfig="pkg-config dbus-1"
+		modver=--modversion
+		echo "(I'll use '$dbusconfig' to gather that information.)" >&4
+
+		: Make sure we have a good enough version
+		version=`$dbusconfig $modver`
+		case "$version" in
+		'') ;;
+		*)
+			vint=`echo $version | $awk -F. '{print $1 * 10000 + $2 * 100 + $3;}'`
+			if test 0$vint -lt 03502; then
+				echo "Sorry, you have dbus $version, I need at least 0.35.2." >&4
+				dbuscflags=
+				dbusldflags=
+			else
+				echo "Good, you have dbus $version." >&4
+
+				dbuscflags=`$dbusconfig --cflags`
+				dbusldflags=`$dbusconfig --libs`
+		
+				$cat <<'EOM'
+
+D-Bus support allows me to send out messages onto the D-Bus message
+bus. That way external applications can easily act on certain 
+events that happen, such as a completed download.
+
+For more information, see doc/other/dbus-support.txt
+
+EOM
+				rp="Enable D-Bus support"
+				dflt=y
+				. ./myread
+				case "$ans" in
+				y) dbus="$define";;
+				*) dbus="$undef";;
+				esac
+			fi
+			;;
+		esac
+	else
+		echo "You've don't seem to have dbus installed?" >&4
+	fi
+	;;
+esac
+val=$dbus
+set d_dbus
+eval $setvar
+

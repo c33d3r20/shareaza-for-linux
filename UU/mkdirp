@@ -1,0 +1,15 @@
+#!/bin/sh
+name=$1;
+create="";
+while test $name; do
+	if test ! -d "$name"; then
+		create="$name $create"
+		name=`echo $name | sed -e "s|^[^/]*$||"`
+		name=`echo $name | sed -e "s|\(.*\)/.*|\1|"`
+	else
+		name=""
+	fi
+done
+for file in $create; do
+	mkdir $file
+done

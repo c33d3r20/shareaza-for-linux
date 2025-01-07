@@ -1,0 +1,184 @@
+?RCS: $Id$
+?RCS:
+?RCS: @COPYRIGHT@
+?RCS:
+?MAKE:gtkconfig gtkcflags gtkldflags d_gtk: gtkversion gtkpackage awk \
+	glibcflags glibldflags Warn d_headless cat rm cc ccflags ldflags
+?MAKE:	-pick add $@ %<
+?S:gtkconfig:
+?S:	This variable holds the command to use to grab information about GTK.
+?S: Typically something like "pkg-config gtk+" or "gtk-config".
+?S:.
+?S:gtkcflags:
+?S:	This variable holds the compiler flags required to compile with GTK.
+?S:.
+?S:gtkldflags:
+?S:	This variable holds the linker flags required to link against GTK.
+?S:.
+?S:d_gtk:
+?S:	This variable is if compiling against Gtk+ works.
+?S:.
+?T:modver version vint flag missing allok x l
+: how can we find information about GTK?
+d_gtk="$undef"
+version=
+case "$d_headless" in
+"$define")
+?X: Since there is no GUI, simply include the GLib flags
+	gtkcflags="$glibcflags"
+	gtkldflags="$glibldflags"
+	;;
+*)
+?X: Indentation wrong on purpose
+echo " "
+echo "Checking how we can gather information about GTK+..." >&4
+if [ "$gtkversion" = 1 ] && gtk-config --cflags >/dev/null 2>&1; then
+	gtkconfig='gtk-config'
+	modver=--version
+elif pkg-config $gtkpackage --cflags >/dev/null 2>&1; then
+	gtkconfig="pkg-config $gtkpackage"
+	modver=--modversion
+elif pkg-config --cflags $gtkpackage >/dev/null 2>&1; then
+	version=`pkg-config --version`
+	echo "(You have a weird pkg-config, version $version)"
+?X: this weird pkg-config (older than 0.29?) needs --cflags and --libs first
+	gtkcflags=`pkg-config --cflags $gtkpackage`
+	gtkldflags=`pkg-config --libs $gtkpackage`
+	version=`pkg-config --modversion $gtkpackage | head -1`
+else
+	echo "You've got problems!  Do you have GTK+ installed?" >&4
+	gtkconfig='false'
+	modver=''
+fi
+case "$version" in
+'')
+	echo "(I'll use '$gtkconfig' to gather that information.)"
+	gtkcflags=`$gtkconfig --cflags`
+	gtkldflags=`$gtkconfig --libs`
+	version=`$gtkconfig $modver | head -1`
+	;;
+esac
+?X: check that we've got the version they asked for
+case "$gtkversion" in
+1)
+	case "$version" in
+	1.*)
+		vint=`echo $version | $awk -F. '{print $1 * 10000 + $2 * 100 + $3;}'`
+		if test 0$vint -lt 10210; then
+			echo "Sorry, you have GTK+ $version, I need at least 1.2.10." >&4
+			exit 1;
+		else
+			echo "OK, you have GTK+ $version" >&4
+		fi
+		;;
+	*)	./warn "you asked for GTK+ $gtkversion, I found $version" 4>&4
+		;;
+	esac
+	;;
+2)
+	case "$version" in
+	2.*)
+		vint=`echo $version | $awk -F. '{print $1 * 10000 + $2 * 100 + $3;}'`
+		if test 0$vint -lt 20201; then
+			echo "Sorry, you have GTK+ $version, I need at least 2.2.1." >&4
+			exit 1;
+		else
+			echo "OK, you have GTK+ $version" >&4
+		fi
+		;;
+	*)	./warn "you asked for GTK+ $gtkversion, I found $version" 4>&4
+		;;
+	esac
+	;;
+*)
+	echo "Sorry, I don't know anything about GTK+ $version." >&4
+	exit 1
+	;;
+esac
+?X:
+?X: Make sure all the GLib C flags are included, append all if any missing.
+?X:
+missing=false
+allok=true
+for flag in "$glibcflags"; do
+	case "$gtkcflags" in
+	*"$flag"*) ;;
+	*) missing=true; break;;
+	esac
+done
+if $missing; then
+	echo "(Some GLib C flags are missing from GTK+ flags, adding all of them.)" >&4
+	gtkcflags="$gtkcflags $glibcflags"
+	allok=false
+fi
+?X: Make sure all the GLib ld flags are included, append all if any missing.
+missing=false
+for flag in "$glibldflags"; do
+	case "$gtkldflags" in
+	*"$flag"*) ;;
+	*) missing=true; break;;
+	esac
+done
+if $missing; then
+	echo "(Some GLib ld flags are missing from GTK+ flags, adding all of them.)" >&4
+	gtkldflags="$gtkldflags $glibldflags"
+	allok=false
+fi
+if $allok; then
+	echo "Good, all the cc and ld flags from GLib are included in GTK+ flags." >&4
+fi
+?X: Remember, indentation wrong on purpose
+;;
+esac
+
+?X: Remove usless libraries (which we use no symbols from in gtk-gnutella...)
+case "$gtkversion" in
+2)
+	x=
+	for l in $gtkldflags; do
+		case "$l" in
+		-lgio-2.0) ;;
+		-lpangoft2-1.0) ;;
+		-lpangocairo-1.0) ;;
+		-lcairo) ;;
+		-lfontconfig) ;;
+		-lfreetype) ;;
+		*) x="$x $l";;
+		esac
+	done
+	gtkldflags=$x
+	;;
+esac
+
+case "$d_headless" in
+"$undef") echo "Checking whether Gtk+ can be compiled against..." >&4
+$cat >try.c <<EOC
+#include <stdlib.h>
+#include <glib.h>
+#include <gtk/gtk.h>
+int main(void)
+{
+  GtkWidget *window;
+  gpointer p;
+
+  window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  if (!window)
+    return 1;
+  p = g_malloc(23);
+  if (!p)
+    return 1;
+  return 0;
+}
+EOC
+
+if $cc -o try try.c $ccflags $ldflags $gtkcflags $gtkldflags  >/dev/null 2>&1;
+then
+  d_gtk="$define"
+  echo "We'll be using Gtk+ version $version." >&4
+else 
+  ./warn "Cannot compile against Gtk+ version '$version'" 4>&4
+fi
+$rm -rf try try.*
+;;
+esac
+

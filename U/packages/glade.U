@@ -1,0 +1,18 @@
+?RCS: $Id$
+?RCS:
+?RCS: @COPYRIGHT@
+?RCS:
+?MAKE:glade: gtkversion
+?MAKE:	-pick add $@ %<
+?S:glade:
+?S:	This variable holds the name of the glade command to use to regenerate
+?S:	the sources from the glade XML file.
+?S:.
+: derive which glade to use based on the configured GTK+
+echo " "
+case "$gtkversion" in
+2) glade=glade-2;;
+*) glade=glade;;
+esac
+echo "Compiling for GTK $gtkversion: we'll use '$glade'." >&4
+

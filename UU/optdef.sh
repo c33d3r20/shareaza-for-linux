@@ -1,0 +1,13 @@
+#!/bin/sh
+usenm='undef'
+usemymalloc='y'
+prefix='/usr/local'
+make='gmake'
+yacc='bison'
+bindir='/usr/local/bin'
+privlib='/usr/local/share/gtk-gnutella'
+archlib='/usr/local/lib/gtk-gnutella'
+locale='/usr/local/share/locale'
+sysman='/usr/local/man'
+official='true'
+gtkversion='2'

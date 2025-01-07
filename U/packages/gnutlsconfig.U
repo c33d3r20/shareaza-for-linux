@@ -1,0 +1,89 @@
+?RCS: $Id$
+?RCS:
+?RCS: @COPYRIGHT@
+?RCS:
+?MAKE:gnutlsconfig gnutlscflags gnutlsldflags d_gnutls: awk cat Myread Setvar
+?MAKE:	-pick add $@ %<
+?S:d_gnutls:
+?S: This variable determines if HAS_GNUTLS will be defined.
+?S:.
+?S:gnutlsconfig:
+?S: BLAH BLAH BLAH
+?S:.
+?S:gnutlscflags:
+?S:	This variable holds the compiler flags required to compile with GnuTLS.
+?S:.
+?S:gnutlsldflags:
+?S:	This variable holds the linker flags required to link against GnuTLS.
+?S:.
+?C:HAS_GNUTLS:
+?C: This symbol is defined when GnuTLS is present
+?C:.
+?H:#$d_gnutls HAS_GNUTLS  /**/
+?H:.
+?T:modver version vint gnutls gnutlsconfig
+?LINT: set d_gnutls
+: how can we find information about GnuTLS?
+echo " "
+
+gnutls="$undef"
+gnutlscflags=
+gnutlsldflags=
+gnutlsconfig='false'
+modver=
+
+case "$d_gnutls" in
+"$undef") ;;
+*)
+echo "Checking how we can gather information about GnuTLS..." >&4
+if pkg-config gnutls --cflags >/dev/null 2>&1; then
+	gnutlsconfig="pkg-config gnutls"
+	modver=--modversion
+elif libgnutls-config --cflags >/dev/null 2>&1; then
+	gnutlsconfig="libgnutls-config"
+	modver=--version
+else
+	echo "You don't seem to have GnuTLS installed?" >&4
+fi
+
+if [ "$gnutlsconfig" != false ]; then
+	echo "(I'll use '$gnutlsconfig' to gather that information.)"
+fi
+
+?X: Make sure we have a good enough version
+version=`$gnutlsconfig $modver`
+case "$version" in
+'') ;;
+*)
+	vint=`echo $version | $awk -F. '{print $1 * 10000 + $2 * 100 + $3;}'`
+	if test 0$vint -lt 020205; then
+		echo "Sorry, you have GnuTLS $version, I need at least 2.2.5." >&4
+	else
+		echo "Good, you have GnuTLS $version." >&4
+		
+		$cat <<'EOM'
+
+GnuTLS allows encryption of downloads, uploads and Gnutella connections.
+
+For more information, see http://www.gnu.org/software/gnutls/.
+
+EOM
+		rp="Enable GnuTLS support"
+		dflt=y
+		. ./myread
+		case "$ans" in
+		y)	gnutlscflags=`$gnutlsconfig --cflags`
+			gnutlsldflags=`$gnutlsconfig --libs`
+			gnutls="$define";;
+		*)	gnutls="$undef";;
+		esac
+	fi
+	;;
+esac
+;;
+esac
+
+val=$gnutls
+set d_gnutls
+eval $setvar
+

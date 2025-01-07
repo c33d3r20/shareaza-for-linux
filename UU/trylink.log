@@ -1,0 +1,24 @@
+--- d_gettext --- (for gettext())
+#include <libintl.h>
+int main(void)
+{
+	static char ret;
+	ret |= *gettext("msgid");
+	return ret ? 0 : 1;
+}
+/usr/bin/ld: cannot find -lintl
+collect2: error: ld returned 1 exit status
+==> FAILED with "-lintl"
+==> OK with ""
+==> d_gettext=define
+--- d_access --- (for access())
+#define I_UNISTD
+#ifdef I_UNISTD
+#include <unistd.h>
+#endif
+int main(void)
+{
+	static int ret;
+	ret |= access("path", 1);
+	return ret ? 0 : 1;
+}

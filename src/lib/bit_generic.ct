@@ -1,0 +1,350 @@
+;#
+;# $Id$
+;#
+;# Copyright (c) 2006, Christian Biere & Raphael Manfredi
+;#
+;#----------------------------------------------------------------------
+;# This file is part of gtk-gnutella.
+;#
+;#  gtk-gnutella is free software; you can redistribute it and/or modify
+;#  it under the terms of the GNU General Public License as published by
+;#  the Free Software Foundation; either version 2 of the License, or
+;#  (at your option) any later version.
+;#
+;#  gtk-gnutella is distributed in the hope that it will be useful,
+;#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;#  GNU General Public License for more details.
+;#
+;#  You should have received a copy of the GNU General Public License
+;#  along with gtk-gnutella; if not, write to the Free Software
+;#  Foundation, Inc.:
+;#      51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+;#----------------------------------------------------------------------
+;#
+;# This file is the template used to generate bit_array.c and bit_field.c.
+;#
+
+/**
+  * @ingroup lib
+  * @file
+  *
+  * Bit <generic>s.
+  *
+  * @author Christian Biere
+  * @author Raphael Manfredi
+  * @date 2006
+  */
+
+#include "common.h"
+
+#include "bit_<generic>.h"
+#include "halloc.h"
+
+#include "override.h"
+
+/**
+ * Re-allocates "base" so that it can hold at least "n" bits
+ * and initializes newly allocated bytes if necessary.
+ *
+ * @param base The base address of the bit <generic>, may be NULL.
+ * @param n The number of bits the bit <generic> should hold.
+ * @return the re-allocated bit <generic>.
+ *
+ * @attention DO NOT USE IN MEMORY ALLOCATING ROUTINES!
+ */
+void
+bit_generic_resize(bit_generic_t **base_ptr, size_t old_n, size_t new_n)
+{
+	size_t old_size, new_size;
+	void *p;
+
+	STATIC_ASSERT(0 == (BIT_GENERIC_BITSIZE & BIT_GENERIC_BITMASK));
+
+	new_size = BIT_GENERIC_BYTE_SIZE(new_n);
+	old_size = BIT_GENERIC_BYTE_SIZE(old_n);
+	p = hrealloc(*base_ptr, new_size);
+	if (old_size < new_size) {
+		char *bytes = p;
+		memset(&bytes[old_size], 0, new_size - old_size);
+	}
+	*base_ptr = p;
+}
+
+/**
+ * Clears all bits starting at "from" up to "to" inclusive.
+ * @note: For optimum performance, there are no checks at all.
+ *
+ * @param base The base address of the bit <generic> which must be initialized.
+ * @param from The first bit.
+ * @param to The last bit, must be equal to or above "from".
+ * @return TRUE if the bit is set, FALSE otherwise.
+ */
+void
+bit_generic_clear_range(bit_generic_t *base, size_t from, size_t to)
+{
+	size_t i;
+
+	g_assert(from <= to);
+
+	for (i = from; i <= to; /* NOTHING */) {
+		if (0 == (i & BIT_GENERIC_BITMASK)) {
+			size_t n = (to - i) >> BIT_GENERIC_BITSHIFT;
+
+			if (n != 0) {
+				size_t j = i >> BIT_GENERIC_BITSHIFT;
+
+				i += n * BIT_GENERIC_BITSIZE;
+				do {
+					base[j++] = 0;
+				} while (--n != 0);
+				continue;
+			}
+		}
+		bit_generic_clear(base, i++);
+	}
+}
+
+/**
+ * Sets all bits starting at "from" up to "to" inclusive.
+ * @note: For optimum performance, there are no checks at all.
+ *
+ * @param base The base address of the bit <generic> which must be initialized.
+ * @param from The first bit.
+ * @param to The last bit, must be equal to or above "from".
+ * @return TRUE if the bit is set, FALSE otherwise.
+ */
+void
+bit_generic_set_range(bit_generic_t *base, size_t from, size_t to)
+{
+	size_t i;
+
+	g_assert(from <= to);
+
+	for (i = from; i <= to; /* NOTHING */) {
+		if (0 == (i & BIT_GENERIC_BITMASK)) {
+			size_t n = (to - i) >> BIT_GENERIC_BITSHIFT;
+
+			if (n != 0) {
+				size_t j = i >> BIT_GENERIC_BITSHIFT;
+
+				i += n * BIT_GENERIC_BITSIZE;
+				do {
+					base[j++] = (bit_generic_t) -1;
+				} while (--n != 0);
+				continue;
+			}
+		}
+		bit_generic_set(base, i++);
+	}
+}
+
+/**
+ * Peforms a linear scan for the first unset bit of the given bit <generic>.
+ *
+ * @param base The base address of the bit <generic> which must be initialized.
+ * @param from The first bit.
+ * @param to The last bit, must be equal to or above "from".
+ * @return (size_t) -1, if no unset bit was found. On success the
+ *        index of the first unset bit is returned.
+ */
+size_t
+bit_generic_first_clear(const bit_generic_t *base, size_t from, size_t to)
+{
+	size_t i;
+
+	g_assert(from <= to);
+
+	for (i = from; i <= to; /* NOTHING */) {
+		if (0 == (i & BIT_GENERIC_BITMASK)) {
+			size_t n = (to - i) >> BIT_GENERIC_BITSHIFT;
+
+			if (n != 0) {
+				size_t j = i >> BIT_GENERIC_BITSHIFT;
+
+				while (n-- > 0) {
+					if (base[j++] != (bit_generic_t) -1) {
+						bit_generic_t value = base[j - 1];
+						while (value & 0x1) {
+							value >>= 1;
+							i++;
+						}
+						return i;
+					}
+					i += BIT_GENERIC_BITSIZE;
+				}
+				continue;
+			}
+		}
+		if (!bit_generic_get(base, i))
+			return i;
+		i++;
+	}
+
+	return (size_t) -1;
+}
+
+/**
+ * Peforms a linear scan for the first set bit of the given bit <generic>.
+ *
+ * @param base The base address of the bit <generic> which must be initialized.
+ * @param from The first bit.
+ * @param to The last bit, must be equal to or above "from".
+ * @return (size_t) -1, if no unset bit was found. On success the
+ *        index of the first set bit is returned.
+ */
+size_t
+bit_generic_first_set(const bit_generic_t *base, size_t from, size_t to)
+{
+	size_t i;
+
+	g_assert(from <= to);
+
+	for (i = from; i <= to; /* NOTHING */) {
+		if (0 == (i & BIT_GENERIC_BITMASK)) {
+			size_t n = (to - i) >> BIT_GENERIC_BITSHIFT;
+
+			if (n != 0) {
+				size_t j = i >> BIT_GENERIC_BITSHIFT;
+
+				while (n-- > 0) {
+					if (base[j++] != 0) {
+						bit_generic_t value = base[j - 1];
+						while (0 == (value & 0x1)) {
+							value >>= 1;
+							i++;
+						}
+						return i;
+					}
+					i += BIT_GENERIC_BITSIZE;
+				}
+				continue;
+			}
+		}
+		if (bit_generic_get(base, i))
+			return i;
+		i++;
+	}
+
+	return (size_t) -1;
+}
+
+/**
+ * Peforms a linear scan for the last set bit of the given bit <generic>.
+ *
+ * @param base The base address of the bit <generic> which must be initialized.
+ * @param from The first bit.
+ * @param to The last bit, must be equal to or above "from".
+ * @return (size_t) -1, if no set bit was found. On success the
+ *        index of the last set bit is returned.
+ */
+size_t
+bit_generic_last_set(const bit_generic_t *base, size_t from, size_t to)
+{
+	size_t i = to;
+
+	g_assert(from <= to);
+
+	for (;;) {
+		if (BIT_GENERIC_BITMASK == (i & BIT_GENERIC_BITMASK)) {
+			size_t n = (i - from) >> BIT_GENERIC_BITSHIFT;
+
+			if (n != 0) {
+				size_t j = i >> BIT_GENERIC_BITSHIFT;
+
+				while (n-- > 0) {
+					if (base[j--] != 0) {
+						bit_generic_t value = base[j + 1];
+						bit_generic_t mask = 1UL << (BIT_GENERIC_BITSIZE - 1);
+						while (mask != 0) {
+							if (value & mask)
+								return i;
+							mask >>= 1;
+							i--;
+						}
+						g_assert_not_reached();
+					}
+					if (i == from)
+						break;
+					i -= BIT_GENERIC_BITSIZE;
+				}
+				continue;
+			}
+		}
+		if (bit_generic_get(base, i))
+			return i;
+		if (i == from)
+			break;
+		i--;
+	}
+
+	return (size_t) -1;
+}
+
+/**
+ * Peforms a linear scan of the bit <generic> to count set bits within given range.
+ *
+ * @param base	The base address of the bit <generic> which must be initialized.
+ * @param from	The first bit.
+ * @param to	The last bit, must be equal to or above "from".
+ *
+ * @return the amount of set bits between from and to, inclusive.
+ */
+size_t
+bit_generic_count_set(const bit_generic_t *base, size_t from, size_t to)
+{
+	size_t i, cnt = 0;
+
+	g_assert(from <= to);
+
+	for (i = from; i <= to; /* NOTHING */) {
+		/* Handle the first word if `i' is not 0 modulo the word size */
+
+		if (0 != (i & BIT_GENERIC_BITMASK)) {
+			bit_generic_t word = BIT_GENERIC_WORD(base, i);
+			bit_generic_t mask = BIT_GENERIC_BIT(i) - 1;
+
+			word &= ~mask;		/* Clear all bits before `i' in word */
+
+			if (BIT_GENERIC_IDX(i) == BIT_GENERIC_IDX(to)) {
+				mask = BIT_GENERIC_BIT(to) + (BIT_GENERIC_BIT(to) - 1);
+				word &= mask;	/* Clear all bits above `to' in word */
+			}
+
+			cnt += BIT_GENERIC_SETCOUNT(word);
+			i   += BIT_GENERIC_BITSIZE - (i & BIT_GENERIC_BITMASK);
+
+			g_assert(0 == (i & BIT_GENERIC_BITMASK));
+		} else {
+			size_t n = (to - i) >> BIT_GENERIC_BITSHIFT;
+			size_t j = BIT_GENERIC_IDX(i);
+
+			/* Handle whole words between `i' and `to' */
+
+			while (n--) {
+				cnt += BIT_GENERIC_SETCOUNT(base[j++]);
+				i   += BIT_GENERIC_BITSIZE;
+			}
+
+			/* Handle trailing word where `to' lies */
+
+			g_assert(0 == (i & BIT_GENERIC_BITMASK));
+			g_assert(implies(i <= to, to - i < BIT_GENERIC_BITSIZE));
+
+			if (i <= to) {
+				bit_generic_t word = BIT_GENERIC_WORD(base, i);
+				bit_generic_t mask =
+					BIT_GENERIC_BIT(to) + (BIT_GENERIC_BIT(to) - 1);
+
+				g_assert(BIT_GENERIC_IDX(i) == BIT_GENERIC_IDX(to));
+
+				word &= mask;	/* Clear all bits above `to' in word */
+				cnt += BIT_GENERIC_SETCOUNT(word);
+				i   += BIT_GENERIC_BITSIZE;
+			}
+		}
+	}
+
+	return cnt;
+}
+/* vi: set ts=4 sw=4 syn=c cindent: */

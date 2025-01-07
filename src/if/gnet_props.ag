@@ -1,0 +1,5864 @@
+autogen definitions 'props.tpl';
+
+/*
+ * $Id$
+ */
+
+property_set = "gnet_property";
+func_prefix  = "gnet_prop";
+offset       = "(NO_PROP+1)";
+private_src  = "CORE_SOURCES";
+
+uses = "core/sockets.h";
+uses = "core/bsched.h";
+uses = "lib/misc.h";
+uses = "if/core/nodes.h";
+uses = "if/core/sockets.h";
+uses = "dht/kuid.h";
+uses = "if/dht/routing.h";
+uses = "upnp/upnp.h";
+
+prop = {
+    name = "reading_hostfile";
+    desc = "Indicates whether the hostcache file is being read.";
+    type = boolean;
+    save = FALSE;
+	internal = TRUE;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "reading_ultrafile";
+    desc = "Indicates whether the ultracache file is being read.";
+    type = boolean;
+    save = FALSE;
+	internal = TRUE;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "ancient_version";
+    desc = "Indicates that gtk-gnutella finds the version you run "
+           "very VERY old.  You should upgrade as soon as possible "
+		   "to avoid suffering from non-optimal Gnutella support that "
+		   "may not only damage your abilities to search and download "
+		   "but also harm the network since you're not supporting the "
+		   "newest features.";
+    type = boolean;
+    save = FALSE;
+	internal = TRUE;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "new_version_str";
+    desc = "gtk-gnutella found a newer version on the Gnet and gives "
+           "information about it here.";
+    type = string;
+    save = FALSE;
+	internal = TRUE;
+    data = {
+        default = NULL;
+    };
+};
+
+prop = {
+    name = "up_connections";
+    desc = "Try to keep at least this number of connections to other "
+           "servents of the same kind as we are (normal or ultra nodes). "
+		   "This should be smaller than the maximum amount "
+		   "of connections to allow incoming connections.  Keep in mind "
+		   "that the default TTL on Gnutella is 4, so this needs to be "
+		   "more than 30 to provide decent range for searches.";
+    type = guint32;
+    data = {
+        default = 42;
+        min     = 0;
+        max     = 100;
+    };
+};
+
+prop = {
+    name = "normal_connections";
+    desc = "When in ultrapeer mode, try to keep at least this number of "
+		   "connections to normal servents.  This should be smaller than "
+		   "the maximum amount of connections to allow incoming connections.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 1;
+    };
+};
+
+prop = {
+    name = "max_connections";
+    desc = "Don't allow more than this number of connections to other "
+           "servents.  As a rule of thumb you should reserve 256 b/s "
+	       "bandwidth per connection. Never use up all your bandwidth, "
+	       "leave a little space for TCP/IP overhead. It's not "
+           "advisable that you set this to a value smaller than 40.";
+    type = guint32;
+    data = {
+        default = 50;
+        min     = 30;
+        max     = 100;
+    };
+};
+
+prop = {
+    name = "node_leaf_count";
+    desc = "Number of leaf nodes currently connected.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "node_normal_count";
+    desc = "Number of normal nodes currently connected.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "node_ultra_count";
+    desc = "Number of ultra nodes currently connected.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "max_downloads";
+    cfgvar = "max_simultaneous_downloads";
+    desc = "Don't start more than this number of parallel downloads.  "
+		   "Others will remain in the queue waiting for a download slot.";
+    type = guint32;
+    data = {
+        default = 100;
+        min     = 0;
+        max     = 5000;
+    };
+};
+
+prop = {
+    name = "max_host_downloads";
+    cfgvar = "max_simultaneous_host_downloads";
+    desc = "Don't make more connections than given here to a single host "
+           "to download a file.  Be nice to others, and leave it at "
+		   "the default value (1).";
+    type = guint32;
+    data = {
+        default = 1;
+        min     = 1;
+        max     = 10;
+    };
+};
+
+prop = {
+    name = "max_uploads";
+    cfgvar = "max_simultaneous_uploads";
+    desc = "Don't allow more than this number of uploads in total. "
+		"This also defines the amount of PARQ queues that will be used. "
+		"You should at least set it to 2.";
+    type = guint32;
+    data = {
+        default = 4;
+        value   = max_uploads;
+        min     = 0;
+        max     = 100;
+    };
+};
+
+prop = {
+    name = "max_uploads_ip";
+    desc = "Don't upload more than this number of files in parallel to a "
+           "single host.";
+    type = guint32;
+    data = {
+        default = 1;
+        min     = 1;
+        max     = 100;
+    };
+};
+
+prop = {
+    name = "local_ip";
+    desc = "Local IPv4 address last determined.";
+    type = ip;
+};
+
+prop = {
+    name = "local_ip6";
+    desc = "Local IPv6 address last determined.";
+    type = ip;
+};
+
+prop = {
+    name = "current_ip_stamp";
+    desc = "When the current IPv4 address was determined.";
+    type = timestamp;
+	internal = TRUE;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "current_ip6_stamp";
+    desc = "When the current IPv6 address was determined.";
+    type = timestamp;
+	internal = TRUE;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "average_ip_uptime";
+    desc = "Average uptime with the same IPv4 address.";
+    type = guint32;
+	internal = TRUE;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "average_ip6_uptime";
+    desc = "Average uptime with the same IPv6 address.";
+    type = guint32;
+	internal = TRUE;
+    data = {
+        default = 0;
+    };
+};
+
+
+prop = {
+    name = "start_stamp";
+    desc = "Timestamp at which servent was started.";
+	save = FALSE;
+	internal = TRUE;
+    type = timestamp;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "average_servent_uptime";
+    desc = "Average servent uptime.";
+    type = guint32;
+	internal = TRUE;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "listen_port";
+    desc = "Local TCP port gtk-gnutella is listening on. ISPs often "
+			"block or throttle traffic on TCP port 6346 so it is a "
+			"good idea to change it to something in the range of "
+			"1024-65535.  Don't forget to update your firewall port "
+			"forwarding / opening, as necessary.  Note that by default, "
+			"the TCP port 6346 is not used to guard against undue censorship.";
+    type = guint32;
+    data = {
+        default = 1;
+        min     = 0x0000;
+        max     = 0xFFFF;
+    };
+};
+
+prop = {
+    name = "forced_local_ip";
+    desc = "Use this IP address as source address if 'force local ip' "
+           "is activated.";
+    type = ip;
+};
+
+prop = {
+    name = "forced_local_ip6";
+    desc = "Use this IPv6 address as source address if 'force local ip' "
+           "is activated.";
+    type = ip;
+};
+
+prop = {
+    name = "connection_speed";
+    desc = "The connection bandwidth reported to other hosts. "
+		"This is the speed at which you can upload things to others.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 2000;
+    };
+};
+
+prop = {
+    name = "compute_connection_speed";
+    desc = "Whether the connection bandwidth reported to other hosts "
+		"should be computed based on the current average upload speed. "
+		"The reported speed is the available speed for a new upload, not "
+		"the theoretical maximum configured: it is the average bandwidth "
+		"(or the max configured bandwidth if no traffic yet) divided by "
+		"the number of upload slots. "
+		"When it is ON (recommended setting), the hardwired connection speed "
+		"is not used.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "query_response_max_items";
+    cfgvar = "limit_search_results";
+    desc = "Return at most this number of results to a query, using as many "
+		   "query hit packets as necessary.  To avoid network flooding, keep "
+		   "this to a reasonable value.";
+    type = guint32;
+    data = {
+        default = 50;
+        value   = search_max_items;
+        min     = 1;
+        max     = 500;
+    };
+};
+
+prop = {
+    name = "ul_usage_min_percentage";
+    desc = "Unless this percentage or more of the upload bandwidth is used, "
+           "allow additional upload slots.";
+    type = guint32;
+    data = {
+        default = 70;
+        min     = 0;
+        max     = 100;
+    };
+};
+
+prop = {
+    name = "download_connecting_timeout";
+    desc = "Number of seconds before a download connect attempt "
+		   "times out.";
+    type = guint32;
+    data = {
+        default = 90;
+        min     = 60;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "download_push_sent_timeout";
+    desc = "Number of seconds before a push request times out.";
+    type = guint32;
+    data = {
+        default = 90;
+        min     = 60;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "download_connected_timeout";
+    desc = "Number of seconds before a download times out if no data "
+           "is received.";
+    type = guint32;
+    data = {
+        default = 180;
+        min     = 120;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "download_retry_timeout_min";
+    desc = "Minimum number of seconds to wait on auto-retry timeouts.";
+    type = guint32;
+    data = {
+        default = 20;
+        min     = 5;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "download_retry_timeout_max";
+    desc = "Maximum number of seconds to wait on auto-retry timeouts.";
+    type = guint32;
+    data = {
+        default = 3600;
+        min     = 5;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "download_max_retries";
+    desc = "Maximum number of attempts to download a file not "
+           "counting HTTP busy indications.";
+    type = guint32;
+    data = {
+        default = 16;
+        min     = 1;
+        max     = 100;
+    };
+};
+
+prop = {
+    name = "download_retry_timeout_delay";
+    desc = "Delay in seconds before retrying after a connection "
+           "timed out.";
+    type = guint32;
+    data = {
+        default = 120;
+        min     = 15;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "download_retry_busy_delay";
+    desc = "Delay in seconds before retrying after getting a 'busy' "
+           "response from a host.";
+    type = guint32;
+    data = {
+        default = 60;
+        min     = 15;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "download_retry_refused_delay";
+    desc = "Delay in seconds before retrying after getting a 'connection "
+           "refused' response from a host.";
+    type = guint32;
+    data = {
+        default = 180;
+        min     = 15;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "download_retry_stopped_delay";
+    cfgvar = "download_retry_stopped";
+    desc = "Delay in seconds before retrying after a retry stopped "
+           "(timed out, connection reset by peer, etc...).";
+    type = guint32;
+    data = {
+        default = 15;
+        min     = 15;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "download_overlap_range";
+    desc = "Amount of bytes to overlap when resuming a download. "
+		   "It should be at least 64 bytes for safe resuming, otherwise "
+		   "gtk-gnutella will not accept to resume a file for which we "
+		   "had no SHA1 known, after a server gives one back.";
+    type = guint32;
+    data = {
+        default = 512;
+        min     = 0;
+        max     = SOCK_BUFSZ;
+    };
+};
+
+prop = {
+    name = "upload_connecting_timeout";
+    desc =  "Number of seconds before an upload times out if no "
+            "connection can be established during a push.  It is "
+			"also the maximum amount of time we wait to get the "
+			"whole HTTP request.";
+    type = guint32;
+    data = {
+        default = 90;
+        min     = 60;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "upload_connected_timeout";
+    desc = "Number of seconds after which an upload times out if no data "
+           "is transmitted.";
+    type = guint32;
+    data = {
+        default = 180;
+        min     = 120;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "search_reissue_timeout";
+    desc = "Amount of seconds to wait before a search is issued again "
+           "to see if new results are available.  Be very careful with "
+		   "this parameter, and do not set it too low or you will damage "
+		   "the Gnutella network.  A delay of half an hour is fine.";
+    type = guint32;
+    data = {
+        default = 3600;
+        min     = 0;
+        max     = 9999;
+    };
+};
+
+prop = {
+    name = "ban_ratio_fds";
+    desc = "Maximum ratio of file descriptors reserved for banning. "
+		   "For instance, if your OS gives you 350 file descriptors, "
+		   "a ratio of 10 will reserve at most 35 file descriptors.  You "
+		   "should ensure you have around 100 file descriptors for "
+		   "efficient banning.";
+    type = guint32;
+    data = {
+        default = 25;
+        min     = 0;
+        max     = 100;
+    };
+};
+
+prop = {
+    name = "ban_max_fds";
+    desc = "Maximum number of file descriptors reserved for banning.";
+    type = guint32;
+    data = {
+        default = 100;
+        min     = 0;
+        max     = 10000;
+    };
+};
+
+prop = {
+    name = "banned_count";
+    desc = "Amount of file descriptors currently used for banning, "
+		"i.e. which are currently kept open for delayed close.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "max_banned_fd";
+    desc = "Number of file descriptors we'll actually be using for banning.";
+    type = guint32;
+	save = FALSE;
+	internal = TRUE;
+    data = {
+        default = 100;
+    };
+};
+
+prop = {
+    name = "incoming_connecting_timeout";
+    desc =  "Number of seconds an incoming connection has "
+            "to start sending out its request.";
+    type = guint32;
+    data = {
+        default = 60;
+        min     = 30;
+        max     = 300;
+    };
+};
+
+prop = {
+    name = "node_connecting_timeout";
+    desc =  "Number of seconds before a Gnet connect attempt times "
+            "out if no connection can be established.";
+    type = guint32;
+    data = {
+        default = 90;
+        min     = 30;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "node_connected_timeout";
+    desc =  "Number of seconds before a Gnet connection times out "
+            "if no data is transmitted.";
+    type = guint32;
+    data = {
+        default = 180;
+        min     = 120;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "node_sendqueue_size";
+    desc = "Maximum size of the sendqueue for the nodes (in bytes). "
+           "Must be at least 150 percent of the maximum message size.";
+    type = guint32;
+    data = {
+        default = 98304;
+        min     = 98304;
+        max     = 256000;
+    };
+};
+
+prop = {
+    name = "node_tx_flowc_timeout";
+    desc = "Maximum number of seconds a node can remain in transmit flow "
+           "control before being kicked out.";
+    type = guint32;
+    data = {
+        default = 180;
+        min     = 90;
+        max     = 7200;
+    };
+};
+
+prop = {
+    name = "node_rx_flowc_ratio";
+    desc = "Maximum percentage of time over 5 minutes that our node can remain "
+           "in flow control remotely before dropping the connection.  This "
+		   "only works with nodes that will send us an hops-flow message when "
+		   "they are flow-controlling us.";
+    type = guint32;
+    data = {
+        default = 70;
+        min     = 30;
+        max     = 100;
+    };
+};
+
+prop = {
+    name = "max_ttl";
+    desc = "Maximum TTL we allow in messages we broadcast.  If a query "
+		   "comes in with a TTL greater than that, it will be trimmed down "
+		   "to that value.  On Gnutella, the standard is TTL=4, so you "
+		   "cannot set a value lower than that.";
+    type = guint32;
+    data = {
+        default = 4;
+        min     = 4;
+        max     = 5;
+    };
+};
+
+prop = {
+    name = "my_ttl";
+    desc = "The TTL we use in messages we generate.  The default on "
+		   "Gnutella is TTL=4.  If you set it to too large a value, you "
+		   "run the risk of being trimmed down by fellow gtk-gnutella "
+		   "nodes, or kicked out by some other servent.";
+    type = guint32;
+    data = {
+        default = 4;
+        min     = 1;
+        max     = 4;
+    };
+};
+
+prop = {
+    name = "hard_ttl_limit";
+    desc = "Maximum hard TTL limit (hops + TTL) on messages we relay.  This "
+		   "should be greater than the standard TTL=4, because it is also "
+		   "applied to routed-back messages (query hits) that could be "
+		   "re-routed in case a connection is lost.  Standard broadcasted "
+		   "messages have their TTL limited by the maximum TTL you configure, "
+		   "and that limit should be much lower than the value of this "
+		   "parameter.";
+    type = guint32;
+    data = {
+        default = 15;
+        min     = 9;
+        max     = 25;
+    };
+};
+
+prop = {
+    name = "dbg";
+    desc = "For development use: debug level.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "ban_debug";
+    desc = "Debug level for banning code.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "cpu_debug";
+    desc = "If not zero, periodic messages show the used CPU time.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dmesh_debug";
+    desc = "Debug level for download mesh management.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "gmsg_debug";
+    desc = "Debug level for Gnutella messages.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "share_debug";
+    desc = "Debug level for file sharing code.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "node_debug";
+    desc = "Debug level for Gnutella nodes.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "socket_debug";
+    desc = "Debug level for sockets.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bootstrap_debug";
+    desc = "Debug level for bootstrapping into the network.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "http_debug";
+    desc = "Debug level for HTTP code.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "download_debug";
+    desc = "Debug level for downloads.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "fileinfo_debug";
+    desc = "Debug level for fileinfo.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "upload_debug";
+    desc = "Debug level for uploads.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "lib_debug";
+    desc = "Debug level for code shared between gui and core.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "url_debug";
+    desc = "Verbosity of URL handling related debug messages.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "dh_debug";
+	desc = "Debug level for dynamic query hit routing.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "dq_debug";
+	desc = "Debug level for dynamic queries.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "vmsg_debug";
+	desc = "Debug level for vendor messages.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "query_debug";
+	desc = "Debug level for queries.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "search_debug";
+	desc = "Debug level for searches and search results management.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "udp_debug";
+	desc = "Debug level for the UDP traffic layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "qrp_debug";
+	desc = "Debug level for the Query Routing Protocol.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "routing_debug";
+	desc = "Debug level for message routing.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "ggep_debug";
+	desc = "Debug level for GGEP.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "pcache_debug";
+	desc = "Debug level for pong caching.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "hsep_debug";
+	desc = "Debug level for HSEP.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "tls_debug";
+	desc = "Debug level for TLS.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "parq_debug";
+	desc = "Debug level for PARQ.";
+	type = guint32;
+	data = {
+		default	= 0;
+		min		= 0;
+		max		= 20;
+	};
+};
+
+prop = {
+	name = "parq_optimistic";
+	desc = "If set, PARQ will calculate its ETA and retry times more "
+		   "optimistically. If not set PARQ will calculate using a worst "
+		   "case scenario.  The default is to be optimistic.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "parq_size_always_continue";
+	desc = "Maximum size in bytes of an upload which PARQ shall not queue "
+	       "and is always allowed to continue. However, if a client "
+	       "requests small chunks over and over the chunk sizes previously "
+	       "requested and uploaded are also counted.  If the size requested "
+		   "is greater than the threshold then, and only then, we look at the "
+		   "theoretical time it would take to serve the whole amount to see "
+		   "whether we can still bypass queuing. "
+	       "Set to 0 to disable this size-based bypassing feature and only "
+		   "rely on time-based bypassing.";
+	type = guint32;
+	data = {
+		default = 8192;
+	};
+};
+
+prop = {
+	name = "parq_time_always_continue";
+	desc = "When an upload is expected to take less than this setting "
+	       "in seconds, PARQ will be instructed to not queue the upload. "
+	       "This check is done AFTER the file size-based bypassing. "
+	       "Set to 0 to disable this time-based bypassing feature.";
+	type = guint32;
+	data = {
+		default = 5;
+	};
+};
+
+ prop = {
+	name = "parq_ban_bad_maxcountwait";
+	desc = "Ban the client if it violates the Retry-After interval "
+	       "too often. Set this to 0 to disable the banning. The upload "
+		   "will be removed from the queue in any case though. Default is "
+		   "10, so the client is banned after retrying too soon 10 times, "
+		   "which is a good balance between abuse and legacy client support.";
+	type = guint32;
+	data = {
+		default = 10;
+	};
+};
+
+prop = {
+    name = "net_buffer_shortage";
+    desc = "Indicates a kernel network buffer shortage.";
+	save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "stop_host_get";
+    desc = "For development use: don't add new hosts to the host cache.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "bw_http_in_enabled";
+    cfgvar = "bandwidth_input_limit";
+    desc = "Enable bandwidth limitation for incoming HTTP traffic.";
+    type = boolean;
+    data = {
+        default = FALSE;
+        value   = bws_in_enabled;
+    };
+};
+
+prop = {
+    name = "bw_http_out_enabled";
+    cfgvar = "bandwidth_output_limit";
+    desc = "Enable bandwidth limitation for outgoing HTTP traffic.";
+    type = boolean;
+    data = {
+        default = FALSE;
+        value   = bws_out_enabled;
+    };
+};
+
+prop = {
+    name = "bw_gnet_in_enabled";
+    cfgvar = "bandwidth_ginput_limit";
+    desc = "Enable bandwidth limitation for incoming Gnet traffic.";
+    type = boolean;
+    data = {
+        default = FALSE;
+        value   = bws_gin_enabled;
+    };
+};
+
+prop = {
+    name = "bw_gnet_leaf_in_enabled";
+    cfgvar = "bandwidth_glinput_limit";
+    desc = "Enable bandwidth limitation for incoming Gnet leaf traffic.";
+    type = boolean;
+    data = {
+        default = FALSE;
+        value   = bws_glin_enabled;
+    };
+};
+
+prop = {
+    name = "bw_gnet_out_enabled";
+    cfgvar = "bandwidth_goutput_limit";
+    desc = "Enable bandwidth limitation for outgoing Gnet traffic.";
+    type = boolean;
+    data = {
+        default = FALSE;
+        value   = bws_gout_enabled;
+    };
+};
+
+prop = {
+    name = "bw_gnet_leaf_out_enabled";
+    cfgvar = "bandwidth_gloutput_limit";
+    desc = "Enable bandwidth limitation for outgoing Gnet leaf traffic.";
+    type = boolean;
+    data = {
+        default = FALSE;
+        value   = bws_glout_enabled;
+    };
+};
+
+prop = {
+    name = "bw_ul_usage_enabled";
+    desc = "Enable dynamic upload slots allocation.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "bw_allow_stealing";
+    desc = "Allow HTTP and Gnutella to grab whatever bandwidth the other "
+			"is not using.  If FALSE, unused bandwidth is lost.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "autoclear_completed_downloads";
+    cfgvar = "auto_clear_completed_downloads";
+    desc = "Auto clear completed downloads.";
+    type = boolean;
+    data = {
+        default = TRUE;
+        value   = clear_complete_downloads;
+    };
+};
+
+prop = {
+    name = "autoclear_failed_downloads";
+    cfgvar = "auto_clear_failed_downloads";
+    desc = "Auto clear failed downloads (HTTP error, "
+		"failure to resume, write error, etc...).";
+    type = boolean;
+    data = {
+        default = TRUE;
+        value   = clear_failed_downloads;
+    };
+};
+
+prop = {
+    name = "autoclear_unavailable_downloads";
+    cfgvar = "auto_clear_unavailable_downloads";
+    desc = "Auto clear unavailable downloads (connection "
+		"timeout, push route lost, etc...).";
+    type = boolean;
+    data = {
+        default = TRUE;
+        value   = clear_unavailable_downloads;
+    };
+};
+
+prop = {
+    name = "autoclear_finished_downloads";
+    cfgvar = "auto_clear_finished_downloads";
+    desc = "Auto clear finished downloads";
+    type = boolean;
+    data = {
+        default = FALSE;
+        value   = clear_finished_downloads;
+    };
+};
+
+prop = {
+    name = "search_remove_downloaded";
+    desc = "Remove downloaded files from the search result.";
+    type = boolean;
+    data = {
+        default = FALSE;
+        value   = search_remove_downloaded;
+    };
+};
+
+prop = {
+    name = "force_local_ip";
+    desc = "Enable to use [forced_local_ip] as local ip.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "force_local_ip6";
+    desc = "Enable to use [forced_local_ip6] as local ip.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+
+prop = {
+    name = "bind_to_forced_local_ip";
+    desc = "If 'forced_local_ip' is enabled, bind the socket to the forced "
+		   "IP address.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "bind_to_forced_local_ip6";
+    desc = "If 'forced_local_ip6' is enabled, bind the socket to the forced "
+		   "IP address.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "use_netmasks";
+    desc = "Try to connect to local networks first.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "allow_private_network_connection";
+    desc =	"Check this button if you want to use gtk-gnutella on your "
+			"Local Area Network. RFC1918 will be ignored.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "use_ip_tos";
+    desc =	"Check this button if you want gtk-gnutella to use IP TOS to "
+			"differentiate interactive, normal and bulk data. This is "
+			"probably a good idea in most cases, and can particularly help "
+			"with badly misconfigured hosts, LANs, and ISPs.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "download_delete_aborted";
+    desc = "Remove files of aborted downloads from disk.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "proxy_auth";
+    desc = "Use username and password to authenticate to proxy.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "socks_user";
+    desc = "Username for proxy.";
+    type = string;
+    data = {
+        default = "username";
+    };
+};
+
+prop = {
+    name = "socks_pass";
+    desc = "Password for proxy.";
+    type = string;
+    data = {
+        default = "password";
+    };
+};
+
+prop = {
+    name = "proxy_addr";
+    desc = "Address of the proxy.";
+    save = FALSE;
+    type = ip; 
+};
+
+prop = {
+    name = "proxy_hostname";
+    desc = "Hostname of the proxy.";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+    name = "proxy_port";
+    desc = "TCP Port the proxy is listening on.";
+    type = guint32;
+    data = {
+        default = 0x0000;
+        min     = 0x0000;
+        max     = 0xFFFF;
+    };
+};
+
+prop = {
+    name = "proxy_protocol";
+    desc = "Protocol the proxy uses.";
+    type = multichoice;
+    data = {
+        default = PROXY_NONE;
+    };
+    choice = {
+        name = "No proxy";
+        value = PROXY_NONE;
+    };
+    choice = {
+        name = "HTTP";
+        value = PROXY_HTTP;
+    };
+    choice = {
+        name = "SOCKS v4";
+        value = PROXY_SOCKSV4;
+    };
+    choice = {
+        name = "SOCKS v5";
+        value = PROXY_SOCKSV5;
+    };
+};
+
+prop = {
+    name = "network_protocol";
+    desc = "Network protocols to use.";
+    type = multichoice;
+    data = {
+        default = NET_USE_BOTH;
+    };
+    choice = {
+        name = "IPv4 only";
+        value = NET_USE_IPV4;
+    };
+    choice = {
+        name = "IPv6 only";
+        value = NET_USE_IPV6;
+    };
+    choice = {
+        name = "IPv4 and IPv6";
+        value = NET_USE_BOTH;
+    };
+};
+
+prop = {
+    name = "use_ipv6_trt";
+    desc = "Use an IPv6-to-IPv4 Transport Relay Translator as"
+		   "specified by RFC 3142.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "ipv6_trt_prefix";
+    desc = "The IPv6 address prefix used by the IPv6-to-IPv4 "
+           "Transport Relay Translator.";
+    type = ip;
+};
+
+
+prop = {
+    name = "hosts_in_catcher";
+    desc = "Current number of hosts in regular node caches.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+    name = "hosts_in_ultra_catcher";
+    desc = "Current number of IPv4 hosts in ultra node caches.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+    name = "hosts_in_bad_catcher";
+    desc = "Current number of hosts in bad node caches.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+    name = "max_hosts_cached";
+    desc = "Maximum number of hosts in the regular node cache.";
+    type = guint32;
+    data = {
+        default = 10000;
+        min     = 100;
+        max     = 50000;
+    };
+};
+
+prop = {
+    name = "max_ultra_hosts_cached";
+    desc = "Maximum number of IPv4 hosts in the ultra node cache.";
+    type = guint32;
+    data = {
+        default = 10000;
+        min     = 100;
+        max     = 50000;
+    };
+};
+
+prop = {
+    name = "max_bad_hosts_cached";
+    desc = "Maximum number of hosts in the BUSY, UNSTABLE and TIMEOUT lists.";
+    type = guint32;
+    data = {
+        default = 8000;
+        min     = 100;
+        max     = 50000;
+    };
+};
+
+prop = {
+    name = "max_high_ttl_msg";
+    desc = "Amount of tolerable messages above hard TTL limit per node. "
+           "See also MAX_HIGH_TTL_RADIUS";
+    type = guint32;
+    data = {
+        default = 10;
+        min     = 0;
+        max     = 10000;
+    };
+};
+
+prop = {
+    name = "max_high_ttl_radius";
+    desc = "Hop radius for counting high TTL limit messages (# hops "
+           "lower than...). See also MAX_HIGH_TTL_MSG";
+    type = guint32;
+    data = {
+        default = 2;
+        min     = 0;
+        max     = 10;
+    };
+};
+
+prop = {
+    name = "bw_http_in";
+    cfgvar = "input_bandwidth";
+    desc = "Bandwidth limit for incoming HTTP traffic in bytes/sec.";
+    type = guint64;
+    data = {
+        default = 8192;
+        min     = 1024;
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+    name = "bw_http_out";
+    cfgvar = "output_bandwidth";
+    desc = "Bandwidth limit for outgoing HTTP traffic in bytes/sec.";
+    type = guint64;
+    data = {
+        default = 8192;
+        min     = 1024;
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+     name = "bw_gnet_in";
+     cfgvar = "input_gnet_bandwidth";
+     desc = "Bandwidth limit for incoming Gnet traffic in bytes/sec.";
+     type = guint64;
+     data = {
+        default = 8192;
+        min     = 1024;
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+    name = "bw_gnet_out";
+    cfgvar = "output_gnet_bandwidth";
+    desc = "Bandwidth limit for outgoing Gnet traffic in bytes/sec.";
+    type = guint64;
+    data = {
+        default = 8192;
+        min     = 1024;
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+     name = "bw_gnet_lin";
+     cfgvar = "input_gnet_leaf_bandwidth";
+     desc = "Bandwidth limit for incoming Gnet leaf traffic in bytes/sec. "
+			"When running as an ultra node, this bandwidth is stolen "
+			"from the regular HTTP traffic if the shaper for leaves is "
+			"enabled.";
+     type = guint64;
+     data = {
+        default = 3072;
+        min     = 1024;
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+    name = "bw_gnet_lout";
+    cfgvar = "output_gnet_leaf_bandwidth";
+    desc = "Bandwidth limit for outgoing Gnet leaf traffic in bytes/sec. "
+			"When running as an ultra node, this bandwidth is stolen "
+			"from the regular HTTP traffic, if the shaper for leaves is "
+			"enabled.";
+    type = guint64;
+    data = {
+        default = 2048;
+        min     = 1024;
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+    name = "search_queries_forward_size";
+    desc = "Maximum size of search queries messages we forward to others "
+           " (in bytes).";
+    type = guint32;
+    data = {
+        default = 256;
+        min     = 128;
+        max     = 256;
+    };
+};
+
+prop = {
+    name = "search_queries_kick_size";
+    desc =  "Maximum size of search queries messages we allow, otherwise "
+            "close the connection (in bytes).";
+    type = guint32;
+    data = {
+        default = 1024;
+        min     = 256;
+        max     = 1024;
+    };
+};
+
+prop = {
+    name = "search_answers_forward_size";
+    desc = "Maximum size of search answers messages we forward to others "
+           "(in bytes).";
+    type = guint32;
+    data = {
+        default = 16384;
+        min     = 4096;
+        max     = 65536;
+    };
+};
+
+prop = {
+    name = "search_answers_kick_size";
+    desc =  "Maximum size of search answers messages we allow, otherwise "
+            "close the connection (in bytes).";
+    type = guint32;
+    data = {
+        default = 65536;
+        min     = 16384;
+        max     = 65536;
+    };
+};
+
+prop = {
+    name = "search_muid_track_amount";
+    desc =  "Maximum number of relayed Query MUIDs to track. This allows "
+			"mapping MUIDs of Query Hits to the original search term and "
+			"media type filtering to be able to avoid relaying spam and "
+			"non-matching results.  In the worst case this causes about "
+			"300 bytes per Query of memory overhead, but will be much lower "
+			"than that in practice (minimum size is about 40 bytes). "
+			"This is only used when running as an Ultrapeer. "
+			"When the value specified is greater than the amount of messages "
+			"that the Gnutella routing table can track, gtk-gnutella will "
+			"automatically cap the amount of tracked MUIDs to fit the "
+			"queries it remembers for routing.";
+    type = guint32;
+    data = {
+        default = 100000;
+        min     = 0;
+        max     = 10000000;
+    };
+};
+
+prop = {
+    name = "other_messages_kick_size";
+    desc = "Maximum size of unknown messages we allow, otherwise close the "
+           "connection (in bytes).";
+    type = guint32;
+    data = {
+        default = 40960;
+        min     = 1024;
+        max     = 65536;
+    };
+};
+
+prop = {
+    name = "hops_random_factor";
+    desc = "Random factor for the hops field in search packets we send "
+           "(between 0 and 3 inclusive).";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 3;
+    };
+};
+
+prop = {
+    name = "send_pushes";
+    desc = "Whether or not to send push requests.  If you are firewalled, "
+		   "gtk-gnutella will never send push requests anyway.  If you "
+		   "don't let gtk-gnutella send pushes, it will not show search "
+		   "results that would require a push.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "min_dup_msg";
+    desc = "Minimum amount of dup messages to enable kicking, per node "
+           "(also see [min_dup_ratio]).";
+    type = guint32;
+    data = {
+        default = 5;
+        min     = 1;
+        max     = 99;
+    };
+};
+
+prop = {
+    name = "min_dup_ratio";
+    desc = "Minimum ratio of dups on received messages, per node "
+           "(between 0.00 and 100.00) (also see [min_dup_msg]) "
+           "Note: the value is stored between 0 (0.0) and 10000 (100.0) "
+           "in the config file.";
+    type = guint32;
+    data = {
+        default = 150;
+        min     = 0;
+        max     = 10000;
+    };
+};
+
+prop = {
+    name = "scan_extensions";
+    cfgvar = "shared_files_extensions";
+    desc = "Only files with the given extensions will be shared. "
+		   "The special --all-- extension matches all files, even "
+		   "if they don't have any extension.  Use with care.";
+    type = string;
+    data = {
+        default =
+          "aac;ape;avi;"
+		  "bin;bz2;7z;"
+		  "cue;dmg;"
+		  "deb;divx;"
+		  "flac;flc;fli;"
+		  "gif;gz;"
+		  "ifo;iso;it;"
+		  "jpeg;jpg;"
+		  "m4a;mjpg;mka;mkv;mod;mov;mp1;mp2;mp3;mp4;mpa;mpeg;mpega;mpg;mpv;"
+          "nes;"
+		  "oga;ogg;ogm;ogv;opus;"
+		  "qt;"
+		  "pdf;png;ps;"
+		  "ram;rar;rm;rom;rpm;"
+		  "s3m;shn;sid;smc;smd;spx;srt;stm;"
+		  "tar;tbz2;tgz;bittorrent;torrent;txt;"
+		  "vob;voc;vqf;"
+		  "wav;webm;"
+		  "xm;xvid;"
+		  "zip;zoo";
+    };
+};
+
+prop = {
+    name = "scan_ignore_symlink_dirs";
+    desc = "Ignore symbolically linked directories when scanning files to "
+           "share.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "scan_ignore_symlink_regfiles";
+    desc = "Ignore symbolically linked regular files when scanning files to "
+           "share.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "save_file_path";
+    cfgvar = "store_downloading_files_to";
+    desc = "Store incomplete files in this directory.";
+    type = string;
+    data = {
+        default = "~/gtk-gnutella-downloads/incomplete";
+    };
+};
+
+prop = {
+    name = "move_file_path";
+    cfgvar = "move_downloading_files_to";
+    desc = "Move complete files to this directory. "
+		   "If this is set to the SAME directory as the incomplete or "
+		   "corrupted files, files will be renamed with a trailing .OK";
+    type = string;
+    data = {
+        default = "~/gtk-gnutella-downloads/complete";
+    };
+};
+
+prop = {
+    name = "bad_file_path";
+    cfgvar = "move_corrupted_files_to";
+    desc = "Move corrupted, downloaded files to this directory. "
+		   "If this is set to the SAME directory as the incomplete or "
+		   "completed files, files will be renamed with a trailing .BAD";
+    type = string;
+    data = {
+        default = "~/gtk-gnutella-downloads/corrupt";
+    };
+};
+
+prop = {
+    name = "shared_dirs_paths";
+    cfgvar = "shared_dirs";
+    desc = "Directories which contain shared files.";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+    name = "local_netmasks_string";
+    cfgvar = "local_netmasks";
+    desc = "List of networks considered local.  This is a list of "
+			"IP addresses, separated by ';'.  The IP address can be "
+			"given out fully, as in 192.168.0.1, or be optionally "
+			"followed by '/' and a network mask prefix length. "
+			"For instance, 192.168.0.1/24 would represent the whole "
+			"192.168.0.* network.";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+    name = "total_downloads";
+    desc = "Total number of completed downloads in this session.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min = 0x00000000;
+        max = 0xFFFFFFFF;
+    };
+};
+
+prop = {
+    name = "ul_running";
+    desc = "Number of running uploads.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min = 0x00000000;
+        max = 0xFFFFFFFF;
+    };
+};
+
+prop = {
+    name = "ul_quick_running";
+    desc = "Number of quick uploads currently running.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min = 0x00000000;
+        max = 0xFFFFFFFF;
+    };
+};
+
+prop = {
+    name = "ul_registered";
+    desc = "Number of registered (pending) uploads.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min = 0x00000000;
+        max = 0xFFFFFFFF;
+    };
+};
+
+prop = {
+    name = "total_uploads";
+    desc = "Total number of completed uploads in this session.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min = 0x00000000;
+        max = 0xFFFFFFFF;
+    };
+};
+
+prop = {
+    name = "servent_guid";
+    cfgvar = "guid";
+    desc = "Global Unique IDentifier of this node.";
+    type = storage;
+    vector_size = GUID_RAW_SIZE;
+};
+
+prop = {
+    name = "kuid";
+    desc = "Kademlia Unique IDentifier of this node in the DHT.";
+    type = storage;
+    vector_size = KUID_RAW_SIZE;
+};
+
+prop = {
+    name = "use_swarming";
+    desc = "Whether or not to use swarming (recommended = YES).";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "use_aggressive_swarming";
+    desc = "Whether or not to launch competing downloads when swarming and "
+		   "there are many sources available with a few chunks left.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "dl_minchunksize";
+    desc = "Minimum chunk size when swarming.  This is only a hint "
+		   "as gtk-gnutella will download less if you only have a few "
+		   "bytes to get for a file...";
+    type = guint32;
+    data = {
+	    min = "64*1024";
+	    max = "100*1024*1024";
+        default = "512*1024";
+    };
+};
+
+prop = {
+    name = "dl_maxchunksize";
+    desc = "Maximum chunk size when swarming.";
+    type = guint32;
+    data = {
+	    min = "64*1024";
+	    max = "1000*1024*1024";
+        default = "10*1024*1024";
+    };
+};
+
+prop = {
+    name = "auto_download_identical";
+    desc = "Whether or not to automatically queue search results that "
+	   "match a file in the download queue.";
+    type = boolean;
+    data = {
+	    default = TRUE;
+    };
+};
+
+prop = {
+    name = "auto_feed_download_mesh";
+    desc = "Whether or not to automatically feed the download mesh with "
+	   "data gathered from the query hits that flow through our node. "
+	   "This looks for new entries for files we are sharing or already "
+	   "have in our mesh.";
+    type = boolean;
+    data = {
+	    default = TRUE;
+    };
+};
+
+prop = {
+    name = "strict_sha1_matching";
+    desc = "When enabled, SHA1s must match. Otherwise, name and size "
+			"will be sufficient.";
+    type = boolean;
+    data = {
+	    default = TRUE;
+    };
+};
+
+/*
+ * NB: we make is_firewalled a persistent property for the following reasons:
+ *
+ * + If they were not firewalled once, chances are that they will remain so.
+ * + Every hour, we monitor incoming connections, and if we receive none, we
+ *   will activate the firewalled mode.
+ */
+
+prop = {
+    name = "is_firewalled";
+    desc = "Whether gtk-gnutella thinks you're currently firewalled, TCP-wise.";
+    type = boolean;
+    data = {
+	    default = TRUE;
+    };
+};
+
+prop = {
+    name = "is_inet_connected";
+    desc = "Whether gtk-gnutella thinks it's connected to the Internet.";
+    save = FALSE;
+    type = boolean;
+    data = {
+	    default = TRUE;
+    };
+};
+
+prop = {
+    name = "is_udp_firewalled";
+    desc = "Whether gtk-gnutella thinks you're currently firewalled, UDP-wise.";
+    type = boolean;
+    data = {
+	    default = TRUE;
+    };
+};
+
+prop = {
+    name = "recv_solicited_udp";
+    desc = "Whether gtk-gnutella determined it could receive solicited UDP.";
+    type = boolean;
+    data = {
+	    default = FALSE;
+    };
+};
+
+prop = {
+    name = "gnet_compact_query";
+    desc = "Remove unnecessary ballast from query string before processing "
+           "or forwarding them. Reduces traffic at the cost of little CPU time.";
+    type = boolean;
+    data = {
+	    default = TRUE;
+    };
+};
+
+prop = {
+    name = "download_optimistic_start";
+    desc = "Also use sources that don't provide a SHA1 value for the first "
+           "chunk of a file. This dramatically reduces the 'No URN on server' "
+           "messages, but may result in overlap problems later if the first "
+           "chunk was actually from a different file. Use with caution.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "library_rebuilding";
+    desc = "Whether gtk-gnutella is currently rebuilding its library "
+           "in the background.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "sha1_rebuilding";
+    desc = "Whether gtk-gnutella is currently computing SHA1 of shared "
+           "files in the background.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "sha1_verifying";
+    desc = "Whether gtk-gnutella is currently verifying SHA1 of downloaded "
+           "files in the background.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "file_moving";
+    desc = "Whether gtk-gnutella is currently moving files across "
+           "filesystems or simply copying in the background.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "prefer_compressed_gnet";
+    desc = "If active, only compressed incoming connections are allowed after "
+           "the minimum number of connections has been established. Always "
+	   "allows for one non-compressed connection.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "online_mode";
+    desc = "If deactivated, only uploads and downloads will continue. All "
+           "Gnet connections are disabled/terminated.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "download_require_urn";
+    desc = "Whether gtk-gnutella should make sure the server confirms the "
+           "URN of the file we're requesting when it is known locally and "
+		   "a traditional request by name is used (i.e. gtk-gnutella is not "
+		   "issuing a /uri-res/N2R? request).  When set, it supersedes the "
+		   "optimistic first chunk setting.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "download_require_server_name";
+    desc = "Whether gtk-gnutella should make sure the server gives us "
+           "back a non-empty identifying token.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "max_ultrapeers";
+    desc = "Maximum amount of Ultrapeers we should connect to as a leaf.";
+    type = guint32;
+    data = {
+        default = 4;
+        min = 0;
+        max = 5;
+    };
+};
+
+prop = {
+    name = "quick_connect_pool_size";
+    desc = "To connect more quickly, gtk-gnutella will allow up to this many "
+           "connections to be active while trying to fill up the connection "
+           "slots.";
+    type = guint32;
+    data = {
+        default = 40;
+        min = 10;
+        max = 80;
+    };
+};
+
+prop = {
+    name = "max_leaves";
+    desc = "Maximum amount of leaves we can accept.  To be promoted Ultra, "
+		"you should reserve 32 bytes/sec of bandwidth per leaf.";
+    type = guint32;
+    data = {
+        default = 300;
+        min = 25;
+        max = 5000;
+    };
+};
+
+prop = {
+    name = "search_handle_ignored_files";
+    desc = "What to do with files that will be ignored for downloading.";
+    type = multichoice;
+    data = {
+        default = 0;
+    };
+    choice = {
+        name = "displayed normally";
+        value = 0;
+    };
+    choice = {
+        name = "displayed marked";
+        value = 1;
+    };
+    choice = {
+        name = "not displayed";
+        value = 2;
+    };
+};
+
+prop = {
+    name = "configured_peermode";
+    desc = "The peer mode you want to operate as for gtk-gnutella.  When auto "
+		"is selected, gtk-gnutella will start as a leaf node and may be "
+		"promoted to an ultra node if bandwidth and uptime permits, provided "
+		"that you are not firewalled.";
+    type = multichoice;
+    data = {
+        default = NODE_P_AUTO;
+    };
+    choice = {
+        name = "auto (recommended)";
+        value = NODE_P_AUTO;
+    };
+    choice = {
+        name = "ultra node";
+        value = NODE_P_ULTRA;
+    };
+    choice = {
+        name = "leaf node";
+        value = NODE_P_LEAF;
+    };
+};
+
+prop = {
+    name = "current_peermode";
+    desc = "Current peer mode for gtk-gnutella.";
+	save = TRUE;
+	internal = TRUE;
+    type = multichoice;
+    data = {
+        default = 0;
+    };
+    choice = {
+        name = "ultra node";
+        value = NODE_P_ULTRA;
+    };
+    choice = {
+        name = "leaf node";
+        value = NODE_P_LEAF;
+    };
+};
+
+prop = {
+    name = "sys_nofile";
+    desc = "How many file descriptors this process can open.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 1024;
+    };
+};
+
+prop = {
+    name = "sys_physmem";
+    desc = "How much physical memory is available.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint64;
+    data = {
+        default = 65536;
+    };
+};
+
+prop = {
+    name = "dl_queue_count";
+    desc = "How many downloads are currently held in the queue.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dl_running_count";
+    desc = "How many downloads are currently running "
+			"(downloading / connecting).";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dl_active_count";
+    desc = "How many downloads are currently active.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dl_aqueued_count";
+    desc = "How many downloads are currently actively queued.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dl_pqueued_count";
+    desc = "How many downloads are currently passively queued.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "fi_all_count";
+    desc = "How many fileinfo do we have.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "fi_with_source_count";
+    desc = "How many fileinfo with sources do we have.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dl_qalive_count";
+    desc = "How many queued downloads are currently responsive "
+			"(remote servent answering requests).";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dl_byte_count";
+    desc = "Amount of bytes downloaded so far, HTTP headers notwithstanding.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "ul_byte_count";
+    desc = "Amount of bytes uploaded so far, HTTP headers notwithstanding.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "pfsp_server";
+    desc = "Whether gtk-gnutella should serve partial files whilst they are "
+			"still incompletely downloaded.  Recommended for network's health "
+			"unless you already share many files, in which case it does no "
+			"harm to leave it in, but will not matter as much.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "pfsp_first_chunk";
+    desc = "When partial file sharing (PFSP) is enabled, gtk-gnutella will "
+			"strive to download chunks in a random order, to maximize the "
+			"spreading of the file in the network.  However, this makes "
+			"auditing (file type, pre-viewing, etc...) of the file impossible. "
+			"This field sets the size in bytes of the first chunk of data "
+			"that should be continuously downloaded at the beginning of the "
+			"file.  Don't set it too large.";
+    type = guint32;
+    data = {
+        default = 524288; /* 512 KiB */
+    };
+};
+
+prop = {
+    name = "pfsp_minimum_filesize";
+    desc = "When partial file sharing (PFSP) is enabled, gtk-gnutella will "
+			"not share partial files below this filesize. "
+			"Don't set it too large.";
+    type = guint32;
+    data = {
+        default = 1048576; /* 1 MiB */
+    };
+};
+
+
+prop = {
+    name = "crawler_visit_count";
+    desc = "Number of crawler visits during this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "udp_crawler_visit_count";
+    desc = "Number of UDP crawler visits during this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "host_runs_ntp";
+    desc = "Whether the clock of this host is kept accurate via NTP. "
+		"When set, the computed clock skew is ignored. "
+		"Normally, gtk-gnutella automatically determines whether you are "
+		"running NTP locally, but it won't be able to determine whether your "
+		"host is kept synchronized by regular calls to ntpdate, for instance.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "ntp_detected";
+    desc = "Whether a running NTP daemon was detected locally.";
+	save = FALSE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "clock_skew";
+    desc = "The signed clock skew of this host compared to absolute time. "
+		"Adding this skew to the host clock should give the true time.";
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "node_monitor_unstable_ip";
+    desc = "Whether gtk-gnutella should keep track of the IP of unstable "
+		"servents it encounters, preventing further connections attempts "
+		"to/from them.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "node_monitor_unstable_servents";
+    desc = "Whether gtk-gnutella should determine the servent types (as "
+		"identified by their vendor string) that are unstable, preventing "
+		"further connections to/from them.  This only works when gtk-gnutella "
+		"already keeps track of unstable IP addresses.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "dl_remove_file_on_mismatch";
+    desc = "Whether gtk-gnutella should automatically remove the file "
+		"whenever it gets a resuming mismatch and retry from scratch. "
+		"Until Tiger Tree Hashes are widespread, this is the easiest option.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "dl_mismatch_backout";
+    desc = "The amount of bytes which gtk-gnutella will strip off the "
+		"already downloaded bytes after a resuming mismatch, in the hope "
+		"that only this amount was corrupted, preventing proper resuming. "
+		"Most of the time, a resuming mismatch indicates bad data on the "
+		"server, but if the already downloaded data is bad then backing "
+		"out some of it may allow us to recover from the problem.";
+    type = guint32;
+    data = {
+        default = 50000;
+		min = 0;
+		max = 250000;
+    };
+};
+
+prop = {
+    name = "server_hostname";
+    desc = "The hostname of the server that can be used by downloaders "
+		"to find the IP address via a DNS resolution.  If you have a "
+		"dynamic IP address coupled with a dynamic DNS service, then this "
+		"is valuable to downloaders: they may find your node even after "
+		"a few rotations of your IP address.";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+    name = "give_server_hostname";
+    desc = "Whether gtk-gnutella should advertise the hostname of your "
+		"server to downloaders and in query hits.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "reserve_gtkg_nodes";
+	desc = "Percentage of the number of connections we should reserve for "
+		"gtk-gnutella nodes.";
+	type = guint32;
+	data = {
+		default = 0;
+		min = 0;
+		max = 90;
+	};
+};
+
+prop = {
+	name = "unique_nodes";
+	desc = "Maximum percentage of slots a vendor can occupy.";
+	type = guint32;
+	data = {
+		default = 100;
+		min = 10;
+		max = 100;
+	};
+};
+
+prop = {
+	name = "download_rx_size";
+	desc = "Size of the RX socket buffer to be used for downloads, "
+        "in kibibytes. "
+		"If you wish to avoid Gnutella downloads using up all your "
+		"bandwidth, set it to a low value (default is 64K, which is fine). "
+		"If you don't mind sucking up all the available bandwidth, "
+		"increasing your connection latency, set it to a greater value. "
+		"Remember: the smaller the value, the more you will be able to "
+		"precisely control the incoming rate.";
+	type = guint32;
+	data = {
+		default = 64;
+		min = 0;
+		max = 1024;
+	};
+};
+
+prop = {
+	name = "node_rx_size";
+	desc = "Size of the RX socket buffer to be used for nodes, in kbytes. "
+		"The lower the value, the faster the remote end will flow-control "
+		"at the TCP/IP level if you don't read quickly enough, which would "
+		"be the case if you limit the incoming bandwidth.";
+	type = guint32;
+	data = {
+		default = 16;
+		min = 0;
+		max = 128;
+	};
+};
+
+prop = {
+	name = "upload_tx_size";
+	desc = "Size of the TX socket buffer to be used for uploads, in kibibytes.";
+	type = guint32;
+	data = {
+		default = 64;
+		min = 0;
+		max = 1024;
+	};
+};
+
+prop = {
+	name = "dl_http_latency";
+	desc = "Average recent latency between the sending of the HTTP request "
+		"and the reception of the reply from the remote server, in msecs.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "node_last_ultra_check";
+	desc = "Last time at which we performed the ultrapeer requirement checks.";
+	type = timestamp;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "node_last_ultra_leaf_switch";
+	desc = "Last time an automatic switch between ultra and "
+		"leaf mode occurred.";
+	type = timestamp;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "up_req_avg_servent_uptime";
+	desc = "Whether we meet the sufficient average uptime requirement to "
+		"become an Ultra node.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "up_req_avg_ip_uptime";
+	desc = "Whether we meet the sufficient average IP address uptime "
+		"requirement to become an Ultra node.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "up_req_node_uptime";
+	desc = "Whether we meet the sufficient node uptime requirement to "
+		"become an Ultra node.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "up_req_not_firewalled";
+	desc = "Whether we meet the non-firewalled requirement to "
+		"become an Ultra node.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "up_req_enough_conn";
+	desc = "Whether we meet the minimum amount of peer connections "
+		"requirement to become an Ultra node.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "up_req_enough_fd";
+	desc = "Whether we meet the amount of file descriptor "
+		"requirement to become an Ultra node.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "up_req_enough_mem";
+	desc = "Whether we meet the memory requirements to become an Ultra node.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "up_req_enough_bw";
+	desc = "Whether we meet the bandwidth requirements to "
+		"become an Ultra node.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "up_req_good_udp";
+	desc = "Whether we meet the UDP requirements to become an Ultra node.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "search_queue_size";
+	desc = "Size of the search queue holding the locally generated queries "
+		"before they are sent on a given connection.  When full, the oldest "
+		"query is dropped without being sent.  Set it so that it is slightly "
+		"larger than the amount of opened searches.";
+	type = guint32;
+	data = {
+		default = 256;
+		min = 32;
+		max = 512;
+	};
+};
+
+prop = {
+	name = "search_queue_spacing";
+	desc = "Minimum amount of seconds between two consecutive queries sent "
+		"to a given connection (for locally generated queries only!). "
+		"The larger the value, the less negative impact it has on the network.";
+	type = guint32;
+	data = {
+		default = 10;
+		min = 10;
+		max = 60;
+	};
+};
+
+prop = {
+	name = "enable_shell";
+	desc = "Whether connection to gtk-gnutella via the 'shell' control "
+		"interface should be allowed.";
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "remote_shell_timeout";
+	desc = "Amount of seconds until an idle remote shell session gets "
+		"disconnected. If set to zero, no timeout occurs.";
+	type = guint32;
+	data = {
+		default = 180;
+		min = 0;
+		max = 31536000; /* 365 * 24 * 3600 */
+	};
+};
+
+
+prop = {
+	name = "entry_removal_timeout";
+	desc = "Amount of seconds to leave 'dead' entries around so that they "
+		"can still be displayed by the GUI along with the termination status.";
+	type = guint32;
+	data = {
+		default = 5;
+		min = 1;
+		max = 60;
+	};
+};
+
+prop = {
+	name = "node_watch_similar_queries";
+	desc = "Whether gtk-gnutella should actively monitor query strings by "
+		"TTL and hop count and drop duplicates.  Only applies when not "
+		"running as a leaf node, and only for queries with hop count > 0, "
+		"i.e. not from our immediate neighbor.  Dropped queries will be "
+		"accounted for in the 'Message throttle' counter.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "node_queries_half_life";
+	desc = "Half the duration during which gtk-gnutella should remember "
+		"the recently relayed queries by TTL and hop count.  The default "
+		"value of 5 should be just fine, but you can experiment with "
+		"different settings if you want.  The higher it is set, the more "
+		"likely you are to drop legitimate queries, so be careful.";
+	type = guint32;
+	data = {
+		default = 5;
+		min = 1;
+		max = 10;
+	};
+};
+
+prop = {
+	name = "node_requery_threshold";
+	desc = "The minimum amount of seconds to enforce between two identical "
+		"queries from leaf nodes.  If the requery too early, it is dropped " 
+		"and accounted for in the 'Message throttle' counter.  Too frequent "
+		"requeries are harmful for the network, yet we must allow some amount "
+		"of requerying given the dynamic nature of Gnutella connections.  "
+		"You can't disable this checking, but you can lower the constraint "
+		"significantly. Deviations from the default of 1700 have exponential "
+		"effects on the network traffic.";
+	type = guint32;
+	data = {
+		default = 1700;
+		min = 1200;
+		max = 1800;
+	};
+};
+
+prop = {
+	name = "library_rescan_started";
+	desc = "Time at which we started the last scan of the library.";
+	type = timestamp;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "library_rescan_finished";
+	desc = "Time at which the last scan of the library finished.";
+	type = timestamp;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "library_rescan_duration";
+	desc = "The number of seconds the last scan of the library took.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_indexing_started";
+	desc = "Time at which we started shared file indexing.";
+	type = timestamp;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_indexing_duration";
+	desc = "Time spent indexing shared files.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_memory";
+	desc = "Memory used by the QRP tables";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_timestamp";
+	desc = "Time at which we started query routing table generation.";
+	type = timestamp;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_computation_time";
+	desc = "Time spent computing the QRP table, in seconds.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_patch_timestamp";
+	desc = "Time at which we started computing our QRP patch.";
+	type = timestamp;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_patch_computation_time";
+	desc = "Time spent computing the QRP table patch, in seconds.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_generation";
+	desc = "Query routing table generation number.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_slots";
+	desc = "Amount of slots used by our QRP table.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_slots_filled";
+	desc = "Amount of slots filled within our QRP table.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_fill_ratio";
+	desc = "Percentage of slots filled within our QRP table.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_conflict_ratio";
+	desc = "Percentage of hashing conflicts whilst inserting data in "
+		"our QRP table.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_hashed_keywords";
+	desc = "Amount of hashed keywords in our QRP table.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_patch_raw_length";
+	desc = "Total raw size of the QRP table patch, in bytes.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_patch_length";
+	desc = "Final QRP table patch length, after possible compression.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "qrp_patch_comp_ratio";
+	desc = "QRP table patch compression ratio, in percent, 0 means none.";
+	type = guint32;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+    name = "ancient_version_left_days";
+    desc = "Indicates that gtk-gnutella will expire in that many days.";
+    type = guint32;
+    save = FALSE;
+    data = {
+        default = 365;
+    };
+};
+
+prop = {
+	name = "file_descriptor_shortage";
+	desc = "When set, gtk-gnutella is running short on file descriptors, "
+		"but normal operations are still possible. "
+		"The condition automatically clears itself after 10 minutes without "
+		"any more shortage.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "file_descriptor_runout";
+	desc = "When set, gtk-gnutella has run out of file descriptors, "
+		"and operations are necessarily degraded, if not impossible. "
+		"The condition automatically clears itself after 10 minutes past "
+		"the last occurrence.";
+	type = boolean;
+	save = FALSE;
+	internal = TRUE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "convert_spaces";
+	desc = "If set, spaces in filenames are replaced with underscores.";
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "convert_evil_chars";
+	desc = "If set, meta shell characters in filenames are replaced with "
+		"underscores. (This must also be enabled for FAT partitions.)";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "convert_old_filenames";
+	desc = "If set, gtk-gnutella will, upon startup, sanitize filenames by "
+		"converting spaces and/or evil characters in them, according to your "
+		"settings, on existing filenames in your temporary downloading "
+		"directory. "
+		"By default, the above settings apply only on newly created entries, "
+		"not existing ones.";
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "tls_enforce";
+	desc = "If set, all outgoing connections are tunneled over TLS.";
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "gnet_deflate_enabled";
+	desc = "If not set, support for Gnutella connection compression is "
+			"disabled.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+
+prop = {
+	name = "enable_udp";
+	desc = "Whether UDP shall be used in complement to TCP.  When set, "
+		"gtk-gnutella will also listen for UDP traffic on the same port "
+		"as the one configured for TCP and process incoming Gnutella traffic "
+		"in almost the same way as if it was received via TCP.  It is "
+		"safe to leave this set, which is the default behavior.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "process_oob_queries";
+	desc = "Whether gtk-gnutella should honor the request for out-of-band "
+		"delivery of query hits via UDP, provided UDP support "
+		"is enabled.  It should not be necessary to add a port forwarding "
+		"to enable this as your node will be the origin of the UDP "
+		"traffic and can therefore receive replies sent to "
+		"the transient UDP port opened by a masquerading firewall.  It is "
+		"enabled by default because it is deemed safe, as your node controls "
+		"the bulk of the emitted traffic and honors the bandwidth "
+		"limitations.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "send_oob_queries";
+	desc = "Whether gtk-gnutella should send queries requesting out-of-band "
+		"delivery of query hits via UDP.  The setting is ignored if you "
+		"seem to be UDP-firewalled, i.e. cannot receive unsolicited UDP "
+		"traffic.  You need to enable UDP support first.  This can cause "
+		"the reception of vast quantities of UDP replies, so you may choose "
+		"to disable this feature.  If disabled, your hits will travel "
+		"through the Gnutella network and can be dropped by any "
+		"flow-controlled relaying node, limiting the results you "
+		"can get.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "proxy_oob_queries";
+	desc = "Whether gtk-gnutella should, when running as ultrapeer, act as "
+		"proxy for leaf queries that are not requesting OOB "
+		"delivery of query hits: gtk-gnutella will claim the hits from the "
+		"remote nodes and forward the hits to the proper leaf.  This is "
+		"very beneficial for the leaves, but can cause huge bursts of "
+		"UDP traffic coming back to you.  If you disable it "
+		"all ultrapeers connected to you will have to relay the hits, "
+		"possibly dropping other query messages and lowering the efficiency "
+		"of the search network.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "uploads_stalling";
+	desc = "Whether uploads are frequently stalling, indicating that the "
+		"bandwidth is saturated.  Avoid running as an ultra-node under "
+		"those conditions.";
+	save = FALSE;
+	internal = TRUE;
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "use_global_hostiles_txt";
+	desc = "If set to TRUE, the global hostiles.txt is used as well as the "
+			"private $GTK_GNUTELLA_DIR/hostiles.txt. This allows you to "
+			"separate your private ban list from the global one distributed "
+			"with gtk-gnutella.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "use_so_linger";
+	desc = "If set to TRUE, SO_LINGER is used for sockets.";
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "tcp_defer_accept_timeout";
+	desc = "See the man page for tcp(7). This feature typically only available"
+		" on Linux systems.";
+	type = guint32;
+	data = {
+		default = 10;
+        min = 0;
+        max = 600;
+	};
+};
+
+
+prop = {
+	name = "browse_host_enabled";
+	desc = "If TRUE, other hosts can request a complete list of all "
+		   "shared files.";
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+    name = "html_browse_count";
+    desc = "Number of HTML browsing requests received in this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "html_browse_served";
+    desc = "Number of HTML browsing requests fully served in this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "qhits_browse_count";
+    desc = "Number of Gnutella browsing requests received in this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "qhits_browse_served";
+    desc = "Number of Gnutella browsing requests fully served in this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "overloaded_cpu";
+    desc = "The average CPU usage indicates overloading, so gtk-gnutella is "
+		"reducing the amount of non-critical processing it is performing. "
+		"Note that the overloading can result from gtk-gnutella not getting "
+		"enough CPU time because another process is competing for the CPU. "
+		"Whilst the overloading condition persists, GUI refreshing is reduced "
+		"and background tasks (SHA1 computation, file moving) are slowed down.";
+	save = FALSE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "download_buffer_size";
+    desc = "Amount of data per downloading source that gtk-gnutella will "
+		"buffer before writing to disk.  When swarming from many sources, "
+		"a larger value will help avoid using too many system calls and "
+		"should also reduce the fragmentation on the filesystem.  The downside "
+		"is that it uses more memory per active source.  Use 0 to disable all "
+		"buffering, i.e. have gtk-gnutella write to disk as soon as it "
+		"receives some data. Increase to maximum value if you have RAM.";
+    type = guint32;
+    data = {
+        default = 131072;
+        min = 0;
+        max = 1048576;
+    };
+};
+
+prop = {
+	name = "browse_copied_to_passive";
+	desc = "When set, all search results from host browsing are dispatched "
+		   "to all opened passive searches.  This is useful if you have "
+		   "different selection filters on your passive searches because it "
+		   "lets you classify files easily, regardless of the origin of "
+		   "the files.";
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "display_metric_units";
+	desc = "Enable this if all units should be displayed using "
+		"the metric system with SI prefixes. If disabled, certain units, for "
+		"example, filesizes will be displayed using the historical base2 "
+		"convention with binary prefixes.";
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "rudp_debug";
+    desc = "Debug level for Reliable UDP (RUDP) code.";
+	type = guint32;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "dht_debug";
+    desc = "Debug level for the Distributed Hash Table (DHT) code.";
+	type = guint32;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "oob_proxy_debug";
+    desc = "Debug level for the OOB-proxying of queries.";
+	type = guint32;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "enable_local_socket";
+    desc = "If set gtk-gnutella also listens on a local (unix domain) socket "
+			"which is located in ~/.gtk-gnutella/socket.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "max_simultaneous_downloads_per_file";
+    desc = "Don't start more than this number of parallel downloads per file.";
+    type = guint32;
+    data = {
+        default = 40;
+        min     = 1;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+    name = "dump_received_gnutella_packets";
+    desc = "If enabled, all received packets are dumped to "
+			"$GTK_GNUTELLA_DIR/packets_rx.dump.";
+	type = boolean;
+	save = FALSE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "search_results_expose_relative_paths";
+	desc = "If enabled, queries are also matched against the directory "
+			"names which are relative to the shared ones. Further, search "
+			"results will show these. This is especially useful if the shared "
+			"filenames are ambiguous or meaningless without knowing "
+			"the directory names as well. However, be sure the directory "
+			"names do not expose confidential information. You have "
+			"to initiate a rescan of the shared files before a change "
+			"becomes fully effective.";
+	type = boolean;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+    name = "shell_debug";
+    desc = "Debug level for the shell.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "download_queue_frozen";
+    desc = "If larger than zero, no downloads are started.";
+    type = guint32;
+    save = FALSE;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "sq_debug";
+    desc = "Debug level for the search queue.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "push_proxy_debug";
+    desc = "Debug level for push-proxy code.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "thex_files_requested";
+    desc = "Number of THEX file requests received in this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "thex_files_served";
+    desc = "Number of THEX file requests fully served in this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "tigertree_debug";
+    desc = "Debug level for Tigertree-related code.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "tth_rebuilding";
+    desc = "Whether gtk-gnutella is currently computing TTH of shared "
+           "files in the background.";
+    save = FALSE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "tth_verifying";
+    desc = "Whether gtk-gnutella is currently verifying the TTH of downloaded "
+           "files in the background.";
+    save = FALSE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "search_max_results";
+    desc = "Maximum number of results to show in any search.";
+    type = guint32;
+    data = {
+        default = 1000;
+        min     = 10;
+        max     = 100000;
+    };
+};
+
+prop = {
+    name = "browse_host_max_results";
+    desc = "Maximum number of results to show in a browse_host request.";
+    type = guint32;
+    data = {
+        default = 10000;
+        min     = 100;
+        max     = 500000;
+    };
+};
+
+prop = {
+	name = "latest_svn_release_date";
+	desc = "Date of the latest SVN release.";
+	type = timestamp;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "latest_svn_release_revision";
+	desc = "Revision of the latest SVN release.";
+	type = guint32;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+    name = "latest_svn_release_signature";
+    desc = "Signature of the latest SVN release notification.";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+    name = "tls_cache_max_hosts";
+    desc = "Maximum number of hosts in the TLS node cache.";
+    type = guint32;
+    data = {
+        default = 10000;
+        min     = 100;
+        max     = 50000;
+    };
+};
+
+prop = {
+    name = "tls_cache_max_time";
+    desc = "Maximum time before removing hosts from the TLS cache.";
+    type = guint32;
+    data = {
+        default = 43200;
+        min     = 14400;
+        max     = 691200;
+    };
+};
+
+prop = {
+    name = "tth_auto_discovery";
+    desc = "If set to TRUE the tigertree root hash (TTH) can be discovered "
+		"on the fly. Otherwise, the TTH is only accepted if provided by the "
+        "user, for example, by a magnet link.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "enable_hackarounds";
+    desc = "If set to TRUE, gtk-gnutella will turn on some hacks which, "
+		"unfortunately, have to exist at all.  The aim is to improve the "
+		"overall downloading experience.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "g2_cache_max_hosts";
+    desc = "Maximum number of hosts in the G2 node cache.";
+    type = guint32;
+    data = {
+        default = 10000;
+        min     = 100;
+        max     = 50000;
+    };
+};
+
+prop = {
+    name = "g2_cache_max_time";
+    desc = "Maximum time before removing hosts from the G2 cache.";
+    type = guint32;
+    data = {
+        default = 43200;
+        min     = 14400;
+        max     = 691200;
+    };
+};
+
+prop = {
+	name = "g2_debug";
+	desc = "Debug level for management of G2-only hosts.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "dl_resource_switching";
+    desc = "Whether GTKG can switch among the several files waiting to be "
+		"downloaded from a given server, when making a follow-up HTTP "
+		"request.  Turn it off only if you witness problems with a "
+		"particular servent you're downloading from.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "parq_enabled";
+    desc = "If set to TRUE, PARQ (Passive/Active Remote Queuing) is enabled. "
+		"Do not disable unless you know what you are doing.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "pfsp_last_chunk";
+    desc = "When partial file sharing (PFSP) is enabled, gtk-gnutella will "
+			"strive to download chunks in a random order, to maximize the "
+			"spreading of the file in the network.  However, this may make "
+			"pre-viewing of the file impossible as some file formats make "
+			"use of a trailer to hold meta-information or seeking indices. "
+			"GTKG will attempt to download the specified amount of data at "
+			"the tail of the file as soon as possible.  Set it to 0 to "
+			"disable any tail-downloading preference.";
+    type = guint32;
+    data = {
+        default = 524288; /* 512 KiB */
+    };
+};
+
+prop = {
+    name = "beautify_filenames";
+    desc = "Whether GTKG should post-process filenames to remove consecutive "
+		"'_' in the name, or extra '_' surrounding punctuation for instance, "
+		"to make the name prettier.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "enable_dht";
+	desc = "Whether the Distributed Hash Table (DHT) should be enabled. "
+		"The DHT allows you to resolve magnet: URIs and to easily locate "
+		"alternate locations for files and push-proxies for firewalled hosts. "
+		"It requires UDP support.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "cq_debug";
+    desc = "Debug level for the callout queue.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dht_lookup_debug";
+    desc = "Debug level for DHT node lookups.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dht_storage_debug";
+    desc = "Debug level for DHT key/value storage.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dht_publish_debug";
+    desc = "Debug level for DHT key/value publishing.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bw_dht_lookup_out";
+    cfgvar = "output_dht_lookup_bandwidth";
+    desc = "Bandwidth hint for DHT user lookups, in bytes/sec. "
+			"This is used both for limiting concurrent publishing and "
+			"searching.  Traffic is made on the Gnutella UDP socket. "
+			"Output needs are lower than input (between 3 to 5 times less). "
+			"The larger the numbers, the more values can be looked up "
+			"concurrently, but the more bandwidth is used.";
+    type = guint64;
+    data = {
+        default = 2048;
+        min     = 512;
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+    name = "bw_dht_lookup_in";
+    cfgvar = "input_dht_lookup_bandwidth";
+    desc = "Bandwidth hint for DHT user lookups, in bytes/sec. "
+			"This is used both for limiting concurrent publishing and "
+			"searching.  Traffic is made on the Gnutella UDP socket and "
+			"cannot therefore be truly controlled.  Input needs are much "
+			"larger than output as far as lookups are concerned (between "
+			"3 to 5 times).  The larger the numbers the more values can be "
+			"looked up concurrently, but the more bandwidth is used.";
+    type = guint64;
+    data = {
+        default = 8192;
+        min     = 2048;
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+	name = "sticky_guid";
+	desc = "Whether the GUID should be kept accross sessions. "
+		"A sticky GUID can be helpful if you are firewalled and share "
+		"files because the downloaders will be able to contact you again "
+		"more easily when you come back online.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "sticky_kuid";
+	desc = "Whether the KUID should be kept accross sessions. "
+		"A sticky KUID is helpful for the DHT because it promotes routing "
+		"table stability and ensures that closest nodes will keep mutual "
+		"knowledge about each other";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "dht_ulq_debug";
+    desc = "Debug level for the DHT user lookup queue.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dht_storage_in_memory";
+    desc = "If TRUE, DHT storage uses memory instead of diskspace.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "download_trace";
+    desc = "Defines which download HTTP header exchanges should be traced.";
+    type = multichoice;
+    data = {
+        default = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "none";
+        value = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "input only";
+        value = SOCK_TRACE_IN;
+    };
+    choice = {
+        name = "output only";
+        value = SOCK_TRACE_OUT;
+    };
+    choice = {
+        name = "input & output";
+        value = SOCK_TRACE_BOTH;
+    };
+};
+
+prop = {
+    name = "upload_trace";
+    desc = "Defines which upload HTTP header exchanges should be traced.";
+    type = multichoice;
+    data = {
+        default = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "none";
+        value = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "input only";
+        value = SOCK_TRACE_IN;
+    };
+    choice = {
+        name = "output only";
+        value = SOCK_TRACE_OUT;
+    };
+    choice = {
+        name = "input & output";
+        value = SOCK_TRACE_BOTH;
+    };
+};
+
+prop = {
+    name = "gnet_trace";
+    desc = "Defines which Gnutella header exchanges should be traced.";
+    type = multichoice;
+    data = {
+        default = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "none";
+        value = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "input only";
+        value = SOCK_TRACE_IN;
+    };
+    choice = {
+        name = "output only";
+        value = SOCK_TRACE_OUT;
+    };
+    choice = {
+        name = "input & output";
+        value = SOCK_TRACE_BOTH;
+    };
+};
+
+prop = {
+    name = "push_proxy_trace";
+    desc = "Defines which push-proxy HTTP header exchanges should be traced.";
+    type = multichoice;
+    data = {
+        default = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "none";
+        value = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "input only";
+        value = SOCK_TRACE_IN;
+    };
+    choice = {
+        name = "output only";
+        value = SOCK_TRACE_OUT;
+    };
+    choice = {
+        name = "input & output";
+        value = SOCK_TRACE_BOTH;
+    };
+};
+
+prop = {
+    name = "http_trace";
+    desc = "Defines which HTTP header exchanges should be traced, other "
+		"than downloads, uploads and push-proxy exchanges.";
+    type = multichoice;
+    data = {
+        default = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "none";
+        value = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "input only";
+        value = SOCK_TRACE_IN;
+    };
+    choice = {
+        name = "output only";
+        value = SOCK_TRACE_OUT;
+    };
+    choice = {
+        name = "input & output";
+        value = SOCK_TRACE_BOTH;
+    };
+};
+
+prop = {
+    name = "verify_debug";
+    desc = "Debug level for (generic) file verification code.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "local_addr_cache_max_hosts";
+    desc = "Maximum number of hosts in the local address cache, which "
+		"remembers the recent IP:port combinations we had.";
+    type = guint32;
+    data = {
+        default = 100;
+        min     = 1;
+        max     = 100;
+    };
+};
+
+prop = {
+    name = "local_addr_cache_max_time";
+    desc = "Maximum time before removing hosts from the local address cache, "
+		"which remembers the recent IP:port combinations we had.";
+    type = guint32;
+    data = {
+        default = 604800;
+        min     = 86400;
+        max     = 2592000;
+    };
+};
+
+prop = {
+	name = "local_addr_debug";
+	desc = "Debug level for management of local address cache.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "dump_transmitted_gnutella_packets";
+    desc = "If enabled, all packets enqueued for transmission are dumped to "
+			"$GTK_GNUTELLA_DIR/packets_tx.dump.";
+	type = boolean;
+	save = FALSE;
+	data = {
+		default = FALSE;
+	};
+};
+
+prop = {
+	name = "mq_tcp_debug";
+	desc = "Debug level the TCP message queues";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "mq_udp_debug";
+	desc = "Debug level for the UDP message queue.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "node_udp_sendqueue_size";
+    desc = "Maximum size of the UDP message queue (in bytes). "
+           "Must be at least 150 percent of the maximum message size.";
+    type = guint32;
+    data = {
+        default = 98304;
+        min     = 98304;
+        max     = 256000;
+    };
+};
+
+prop = {
+	name = "clock_debug";
+	desc = "Debug level for the management of the clock accuracy.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "fw_debug";
+	desc = "Debug level for the firewalled status management.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "host_debug";
+	desc = "Debug level for host management.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "dht_roots_debug";
+    desc = "Debug level for DHT root node caching.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "lib_stats";
+    desc = "Logged statistics level for code shared between GUI and core.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "spam_lut_in_memory";
+    desc = "If TRUE, the spam SHA1 database is kept in memory. If FALSE, it "
+		"is kept in a fast disk database, which saves a large amount of "
+		"core memory and reduces the overall footprint, at the cost of an "
+		"increased I/O level. However, the DB cache has a 90 percent hit "
+		"rate, so the actual overhead is barely noticeable when running as an "
+		"ultra node and should remain completely unnoticed when running as a "
+		"leaf.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+	name = "spam_debug";
+	desc = "Debug level for spam detection.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "lockfile_debug";
+	desc = "Debug level for lockfile management.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "zalloc_debug";
+	desc = "Debug level for the zone-based memory allocator.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "palloc_debug";
+	desc = "Debug level for the pool-based memory allocator.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "rxbuf_debug";
+	desc = "Debug level for the RX buffer allocator.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "zalloc_always_gc";
+	desc = "Whether the zone-based memory allocator should always keep the "
+		"zones in garbage-collecting mode, thereby maximizing the chances of "
+		"being able to quickly reclaim empty zones after an allocation burst. "
+		"This causes a slight CPU overhead at block free time but the memory "
+		"footprint will remain much lower. To further minimize the footprint, "
+		"you can also set spam_lut_in_memory to FALSE.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "vmm_debug";
+	desc = "Debug level for the virtual memory manager.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "shutdown_debug";
+	desc = "Debug level for final shutdown.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "country_limits";
+    desc = "Country preferences";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+	name = "ctl_debug";
+	desc = "Debug level for country limits.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "log_dropped_gnutella";
+	desc = "Whether to log dropped Gnutella messages";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "whitelist_debug";
+	desc = "Debug level for whitelist management.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "dht_tcache_debug";
+	desc = "Debug level for DHT token caching.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "publisher_debug";
+	desc = "Debug level for DHT publishing from Gnutella.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "dht_trace";
+    desc = "Defines which DHT messages should be traced.";
+    type = multichoice;
+    data = {
+        default = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "none";
+        value = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "input only";
+        value = SOCK_TRACE_IN;
+    };
+    choice = {
+        name = "output only";
+        value = SOCK_TRACE_OUT;
+    };
+    choice = {
+        name = "input & output";
+        value = SOCK_TRACE_BOTH;
+    };
+};
+
+prop = {
+    name = "bw_dht_out_enabled";
+    cfgvar = "bandwidth_dht_output_limit";
+    desc = "Enable bandwidth limitation for outgoing DHT traffic.";
+    type = boolean;
+    data = {
+        default = FALSE;
+        value   = bws_dht_out_enabled;
+    };
+};
+
+prop = {
+     name = "bw_dht_out";
+     cfgvar = "output_dht_bandwidth";
+     desc = "Bandwidth limit for outgoing DHT traffic in bytes/sec. It is "
+		"always pooled with the Gnutella UDP queue, regardless of whether "
+		"bandwidth stealing is enabled, so that UDP queues can flush more "
+		"quickly.";
+     type = guint64;
+     data = {
+        default = 12288;
+        min     = 8192;			/* Bare minimum required to be useable */
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+    name = "node_dht_sendqueue_size";
+    desc = "Maximum size of the DHT message queue (in bytes).";
+    type = guint32;
+    data = {
+        default = 131072;
+        min     = 98304;
+        max     = 256000;
+    };
+};
+
+prop = {
+    name = "bsched_debug";
+    desc = "Debug level for bandwidth scheduler.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dht_stable_debug";
+    desc = "Debug level for the DHT stable node recorder.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "reload_debug";
+    desc = "Debug level for the file (re)loading, on change.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "move_debug";
+    desc = "Debug level for the file moving, accross filesystems.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "qhit_debug";
+    desc = "Debug level for query hit message generation.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "version_debug";
+    desc = "Debug level for version management.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "cpu_freq_min";
+    desc = "Minimum CPU frequency, in Hz.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "cpu_freq_max";
+    desc = "Maximum CPU frequency, in Hz.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dht_boot_status";
+    desc = "DHT bootstrap status.";
+	save = FALSE;
+	internal = TRUE;
+    type = multichoice;
+    data = {
+        default = 0;
+    };
+    choice = {
+        name = "none";
+        value = DHT_BOOT_NONE;
+    };
+    choice = {
+        name = "seeded";
+        value = DHT_BOOT_SEEDED;
+    };
+    choice = {
+        name = "own KUID lookup";
+        value = DHT_BOOT_OWN;
+    };
+    choice = {
+        name = "completing";
+        value = DHT_BOOT_COMPLETING;
+    };
+    choice = {
+        name = "completed";
+        value = DHT_BOOT_COMPLETED;
+    };
+    choice = {
+        name = "shutdown";
+        value = DHT_BOOT_SHUTDOWN;
+    };
+};
+
+prop = {
+    name = "dht_configured_mode";
+    desc = "The DHT running mode. An active node will be able to store values "
+		"and is a fully participating member of the Distributed Hash Table. "
+		"A passive node can perform lookups and publish but will not store "
+		"values and cannot be a member of the DHT structure. A firewalled node "
+		"is necessarily passive, but you can force the passive mode even if "
+		"you are not firewalled, although that is not recommended because the "
+		"DHT requires far more active nodes that passive ones to be efficient.";
+    type = multichoice;
+    data = {
+        default = 1;
+    };
+    choice = {
+        name = "active (recommended)";
+        value = DHT_MODE_ACTIVE;
+    };
+    choice = {
+        name = "passive";
+        value = DHT_MODE_PASSIVE;
+    };
+};
+
+prop = {
+    name = "dht_current_mode";
+    desc = "Current DHT running mode.";
+	save = FALSE;
+	internal = TRUE;
+    type = multichoice;
+    data = {
+        default = 1;
+    };
+    choice = {
+        name = "active (recommended)";
+        value = DHT_MODE_ACTIVE;
+    };
+    choice = {
+        name = "passive";
+        value = DHT_MODE_PASSIVE;
+    };
+};
+
+prop = {
+	name = "omalloc_debug";
+	desc = "Debug level for the one-time memory allocator.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "hcache_debug";
+	desc = "Debug level for the host cache.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "randomness";
+    desc = "Random bits.";
+    type = storage;
+    vector_size = KUID_RAW_SIZE;
+};
+
+prop = {
+    name = "average_servent_downtime";
+    desc = "Average servent downtime.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "shutdown_time";
+    desc = "Time when last shutdown occurred.";
+    type = timestamp;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+	name = "alive_debug";
+	desc = "Debug level for alive pings.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "vxml_debug";
+	desc = "Debug level for the versatile XML layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "upnp_debug";
+	desc = "Debug level for the UPnP layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "soap_debug";
+	desc = "Debug level for the SOAP layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "soap_trace";
+    desc = "Defines SOAP exchanges tracing type.";
+    type = multichoice;
+    data = {
+        default = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "none";
+        value = SOCK_TRACE_NONE;
+    };
+    choice = {
+        name = "input only";
+        value = SOCK_TRACE_IN;
+    };
+    choice = {
+        name = "output only";
+        value = SOCK_TRACE_OUT;
+    };
+    choice = {
+        name = "input & output";
+        value = SOCK_TRACE_BOTH;
+    };
+};
+
+prop = {
+    name = "allow_firewalled_ultra";
+    desc = "For testing purposes, allow to run as an ultranode even if "
+		"the node cannot accept incoming TCP connections.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "enable_upnp";
+	desc = "Whether UPnP (Universal Plug and Play) should be enabled. "
+		"Support for UPnP means gtk-gnutella will be able to discover your "
+		"Internet Gateway Device (router) and request that the listening port "
+		"be opened and redirected to your machine, thereby auto-configuring "
+		"to make sure you are not firewalled.  By default you should leave "
+		"it enabled unless you know how to configure your network equipment "
+		"manually to prevent the firewalled condition for both TCP and UDP.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "upnp_possible";
+    desc = "Whether gtk-gnutella was able to locate an Internet Gateway "
+		"Device to install port mappings, if required.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "port_mapping_required";
+    desc = "Whether gtk-gnutella thinks it needs to install port mappings "
+		"on your network router to avoid the firewalled condition.";
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "port_mapping_possible";
+    desc = "Whether gtk-gnutella can install port mappings, if needed.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "natpmp_debug";
+	desc = "Debug level for the NAT-PMP layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "enable_natpmp";
+	desc = "Whether NAT-PMP (NAT Port Mapping Protocol) should be enabled. "
+		"Support for NAT-PMP means gtk-gnutella will be able to look whether "
+		"your default gateway (router) supports the Port Mapping Protocol to "
+		"allow transparent redirection of the external ports on the router "
+		"to the local machine, thereby making sure you are not firewalled. "
+		"By default you should leave it enabled unless you know how to "
+		"configure your network equipment manually to prevent the firewalled "
+		"condition for both TCP and UDP.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "natpmp_possible";
+    desc = "Whether gtk-gnutella was able to locate a NAT-PMP gateway "
+		"to install port mappings, if required.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "tx_debug";
+	desc = "Debug level for the TX (transmit) network layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "rx_debug";
+	desc = "Debug level for the RX (receive) network layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "inputevt_debug";
+	desc = "Debug level for the I/O input event layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "bg_debug";
+	desc = "Debug level for the background task scheduler.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "port_mapping_successful";
+    desc = "Whether gtk-gnutella was able to configure port mappings.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "uploads_bw_no_stealing";
+    desc = "Whether gtk-gnutella disabled HTTP bandwidth stealing.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "uploads_bw_ignore_stolen";
+    desc = "Whether gtk-gnutella ignores HTTP stolen bandwidth.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "uploads_bw_uniform";
+    desc = "Whether gtk-gnutella enforces uniform HTTP outgoing bandwidth.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "enable_http_pipelining";
+	desc = "Whether gtk-gnutella should use HTTP request pipelining when "
+		"possible, in order to decrease downloading latency.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "dl_pipeline_maxchunksize";
+    desc = "Maximum chunk size when swarming with HTTP pipelining.";
+    type = guint32;
+    data = {
+	    min = "64*1024";
+	    max = "10*1024*1024";
+        default = "1*1024*1024";
+    };
+};
+
+prop = {
+	name = "enable_guess";
+	desc = "Whether the Gnutella UDP Extension for Scalable Searches (GUESS) "
+		"should be enabled.  With GUESS enabled, gtk-gnutella offers the "
+		"network the ability to perform iterative Ultrapeer queries instead "
+		"of just broadcasting, allowing searches to more places within the "
+		"Gnutella network.  If you want gtk-gnutella to issue GUESS queries, "
+		"you need to make sure the client-side is enabled as well as this "
+		"setting only governs mostly the server-side of GUESS (required to "
+		"allow the client-side).";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "guess_server_debug";
+    desc = "Debug level for server-side GUESS (Gnutella UDP Extension for "
+		"Scalable Searches).";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "guess_client_debug";
+    desc = "Debug level for client-side GUESS (Gnutella UDP Extension for "
+		"Scalable Searches).";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "max_guess_hosts_cached";
+    desc = "Maximum number of IPv4 hosts in the regular GUESS cache.";
+    type = guint32;
+    data = {
+        default = 1000;
+        min     = 100;
+        max     = 10000;
+    };
+};
+
+prop = {
+    name = "hosts_in_guess_catcher";
+    desc = "Current number of IPv4 hosts in the regular GUESS cache.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+    name = "max_guess_intro_hosts_cached";
+    desc = "Maximum number of IPv4 hosts in the introduction GUESS cache.";
+    type = guint32;
+    data = {
+        default = 5000;
+        min     = 1000;
+        max     = 50000;
+    };
+};
+
+prop = {
+    name = "hosts_in_guess_intro_catcher";
+    desc = "Current number of IPv4 hosts in the introduction GUESS cache.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+	name = "dbstore_debug";
+	desc = "Debug level for the DB disk/RAM storage layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "session_id";
+    desc = "The current Session ID.  This is a unique ID generated each "
+		"time gtk-gnutella starts and it can be monitored from the shell "
+		"interface to check whether gtk-gnutella has been restarted since "
+		"the last check.";
+    type = storage;
+    save = FALSE;
+	internal = TRUE;
+    vector_size = GUID_RAW_SIZE;
+};
+
+prop = {
+    name = "pfsp_rare_server";
+    desc = "Whether gtk-gnutella should serve partial files which are rare "
+			"on the network to increase their spreading rate.  It is good "
+			"for the health of the network to always leave this enabled. "
+			"This setting supersedes the disabling of global partial file "
+			"sharing for rare files only.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+	name = "enable_guess_client";
+	desc = "Whether the Gnutella UDP Extension for Scalable Searches (GUESS) "
+		"client side should be enabled, so that gtk-gnutella can indeed issue "
+		"iterative Ultrapeer queries instead of just broadcasting them. "
+		"If enabled, it requires general GUESS support enabled as well or "
+		"it will simply be ignored.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "bw_guess_out";
+    cfgvar = "guess_output_bandwidth";
+    desc = "Bandwidth hint for GUESS querying, in bytes/sec, limiting the "
+		"amount of concurrency that can be used for GUESS.  Lower numbers "
+		"mean slower querying overall";
+    type = guint64;
+    data = {
+        default = 1536;
+        min     = 256;
+        max     = BS_BW_MAX;
+    };
+};
+
+prop = {
+    name = "matching_debug";
+    desc = "Debug level for the matching code.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "tsync_debug";
+    desc = "Debug level for the time synchronization code.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+	name = "query_request_partials";
+	desc = "Whether queries can request partial results hits, i.e. files "
+		"which are incompletely available on remote hosts.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "query_answer_partials";
+	desc = "Whether queries for partial files should be answered to."
+		"When Partial File Sharing is disabled this setting is of course "
+		"ignored and no partial results are returned.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "query_answer_whats_new";
+	desc = "Whether what's-new? queries should be answered to.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+	name = "search_smart_stop";
+	desc = "When set, gtk-gnutella will automatically stop opened searches "
+		"from which all the requested downloads have been completed, "
+		"regardless of the initially configured expiration time.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "whats_new_search_max_results";
+    desc = "Maximum number of results to show in a What's New? request.";
+    type = guint32;
+    data = {
+        default = 10000;
+        min     = 100;
+        max     = 500000;
+    };
+};
+
+prop = {
+    name = "passive_search_max_results";
+    desc = "Maximum number of results to show in a passive search request.";
+    type = guint32;
+    data = {
+        default = 5000;
+        min     = 100;
+        max     = 500000;
+    };
+};
+
+prop = {
+	name = "log_dup_gnutella_same_node";
+	desc = "Whether to log duplicate Gnutella messages from same node.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_dup_gnutella_higher_ttl";
+	desc = "Whether to log duplicate Gnutella messages with a higher TTL.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_dup_gnutella_other_node";
+	desc = "Whether to log duplicate Gnutella messages (not from same node).";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_new_gnutella";
+	desc = "Whether to log new Gnutella messages, never seen before.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_gnutella_routing";
+	desc = "Whether to log Gnutella routing decisions.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_bad_gnutella";
+	desc = "Whether to log bad Gnutella messages, corrupted or unexpected.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_spam_query_hit";
+	desc = "Whether to log conditions triggering query hit spam flagging.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "max_ultra6_hosts_cached";
+    desc = "Maximum number of IPv6 hosts in the ultra node cache.";
+    type = guint32;
+    data = {
+        default = 10000;
+        min     = 100;
+        max     = 50000;
+    };
+};
+
+prop = {
+    name = "hosts_in_ultra6_catcher";
+    desc = "Current number of IPv6 hosts in ultra node caches.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+    name = "hosts_in_guess6_catcher";
+    desc = "Current number of IPv6 hosts in the regular GUESS cache.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+    name = "hosts_in_guess6_intro_catcher";
+    desc = "Current number of IPv6 hosts in the introduction GUESS cache.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+    name = "max_guess6_hosts_cached";
+    desc = "Maximum number of IPv6 hosts in the regular GUESS cache.";
+    type = guint32;
+    data = {
+        default = 1000;
+        min     = 100;
+        max     = 10000;
+    };
+};
+
+prop = {
+    name = "max_guess6_intro_hosts_cached";
+    desc = "Maximum number of IPv6 hosts in the introduction GUESS cache.";
+    type = guint32;
+    data = {
+        default = 5000;
+        min     = 1000;
+        max     = 50000;
+    };
+};
+
+prop = {
+	name = "xmalloc_debug";
+	desc = "Debug level for the malloc() replacement allocator.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "qhit_bad_debug";
+	desc = "Debug level for bad query hit messages.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "guid_debug";
+	desc = "Debug level for GUID management.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "tx_deflate_debug";
+	desc = "Debug level for the TX (transmit) deflating network layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "tx_debug_addrs";
+    desc = "Comma-separated list of TX debugging hosts (IP addresses only)";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+    name = "dump_rx_addrs";
+    desc = "Comma-separated list of hosts for whom we want to dump RX traffic "
+		"(IP addresses only)";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+    name = "dump_tx_from_addrs";
+    desc = "Comma-separated list of hosts for whom we want to dump TX traffic "
+		" they emit (IP addresses only)";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+    name = "dump_tx_to_addrs";
+    desc = "Comma-separated list of hosts for whom we want to dump TX traffic "
+		"they receive (IP addresses only)";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+    name = "guess_maximize_bw";
+    desc = "Allow GUESS to use some of the unused Gnutella outgoing bandwidth "
+			"regardless of the GUESS bandwidth hint.  If FALSE, only the "
+			"configured bandwidth hint will be used.  When running as a leaf "
+			"this should be set to TRUE to make GUESS queries run faster.";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+	name = "udp_sched_debug";
+	desc = "Debug level for the UDP TX scheduler.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "tx_ut_debug_flags";
+	desc = "Debugging flags for the semi-reliable UDP TX layer: "
+		"1: messages, "
+		"2: fragments, "
+		"4: acknowledgments, "
+		"8: transmissions, "
+		"16: timeouts.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "rx_debug_addrs";
+    desc = "Comma-separated list of RX debugging hosts (IP addresses only)";
+    type = string;
+    data = {
+        default = "";
+    };
+};
+
+prop = {
+	name = "rx_ut_debug_flags";
+	desc = "Debugging flags for the semi-reliable UDP RX layer: "
+		"1: messages, "
+		"2: fragments, "
+		"4: acknowledgments, "
+		"8: receptions, "
+		"16: timeouts.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+	name = "log_sr_udp_tx";
+	desc = "Whether to log sent semi-reliable UDP messages.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_sr_udp_rx";
+	desc = "Whether to log received semi-reliable UDP messages.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "secure_oob_debug";
+	desc = "Debug level for the secured OOB query hit claiming.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "log_vmsg_tx";
+	desc = "Whether to log sent vendor messages.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_vmsg_rx";
+	desc = "Whether to log received vendor messages.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "dht_tcache_debug_flags";
+	desc = "Debugging flags for the DHT token cache (developers only).";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+	name = "log_weird_dht_headers";
+	desc = "Whether to log weird DHT message headers when debugging.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "dht_rpc_debug";
+    desc = "Debug level for the DHT Remote Procedure Call (RPC) code.";
+	type = guint32;
+	data = {
+		default = 0;
+	};
+};
+
+prop = {
+	name = "log_uhc_pings_rx";
+	desc = "Whether to log UHC pings we receive.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_uhc_pings_tx";
+	desc = "Whether to log UHC pings we emit.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "clean_shutdown";
+	desc = "Whether the program was properly shutdown.";
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+	name = "clean_restart";
+	desc = "Whether the program restarted after a clean shutdown.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+    name = "dht_keys_debug";
+    desc = "Debug level for DHT key management.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "dht_values_debug";
+    desc = "Debug level for DHT value management.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "pid";
+    desc = "ID of the current process.";
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "http_range_debug";
+    desc = "Debug level for HTTP range parsing / handling.";
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+	name = "upnp_mapping_lease_time";
+	desc = "Lease time when installing port mappings via UPnP or NAT-PMP, "
+		"in seconds.  A value of 0 requests permanent mappings.";
+    type = guint32;
+    data = {
+        default = UPNP_MAPPING_LIFE;
+        min     = 0;
+        max     = 31536000;	/* About a year */
+    };
+};
+
+prop = {
+	name = "user_auto_restart";
+	desc = "Whether the program is auto-restarting at the user's request.";
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "tm_debug";
+	desc = "Debug level for time management.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "tmalloc_debug";
+	desc = "Debug level for the tmalloc() thread-magazine object distributor.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "evq_debug";
+	desc = "Debug level for the event queue thread.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "max_g2hub_hosts_cached";
+    desc = "Maximum number of G2 hubs in the hub cache.";
+    type = guint32;
+    data = {
+        default = 10000;
+        min     = 100;
+        max     = 50000;
+    };
+};
+
+prop = {
+    name = "hosts_in_g2hub_catcher";
+    desc = "Current number of IPv4 hosts in the G2 hub caches.";
+    save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = INT_MAX;
+    };
+};
+
+prop = {
+	name = "enable_g2";
+	desc = "Whether the G2 protocol should be enabled.";
+	type = boolean;
+	data = {
+		default = TRUE;
+	};
+};
+
+prop = {
+    name = "node_g2_count";
+    desc = "Number of G2 nodes currently connected.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "max_g2_hubs";
+    desc = "Maximum amount of G2 hubs we should connect to as a leaf.";
+    type = guint32;
+    data = {
+        default = 2;
+        min = 0;
+        max = 3;
+    };
+};
+
+prop = {
+	name = "log_bad_g2";
+	desc = "Whether to log bad G2 messages, corrupted or unexpected.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_dropped_g2";
+	desc = "Whether to log dropped G2 messages";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "g2_rpc_debug";
+	desc = "Debug level for the G2 RPC layer.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+	name = "log_query_hits";
+	desc = "Whether to log summary of received query hits";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+	name = "log_query_hit_records";
+	desc = "Whether to log summary of each record in received query hits";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "g2_browse_count";
+    desc = "Number of G2 browsing requests received in this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "g2_browse_served";
+    desc = "Number of G2 browsing requests fully served in this session.";
+	save = FALSE;
+	internal = TRUE;
+    type = guint32;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+	name = "log_sending_g2";
+	desc = "Whether to log G2 messages we're attempting to send";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "session_start_stamp";
+    desc = "Timestamp at which the current session was started.  This stamp "
+		"remains unchanged when gtk-gnutella restarts after a crash or "
+		"an explicit restart request.";
+	internal = TRUE;
+    type = timestamp;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "tcp_no_listening";
+    desc = "No TCP listening socket bound to allow incoming connections.";
+	save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "query_trace";
+    desc = "Defines whether Gnutella queries should be traced.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "inputevt_trace";
+    desc = "Defines whether I/O event callbacks should be traced.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "lock_contention_trace";
+    desc = "Defines whether lock contentions should be traced.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "lock_sleep_trace";
+    desc = "Defines whether lock sleeps should be traced.";
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "running_topless";
+    desc = "If TRUE, then gtk-gnutella runs without a GUI interface.";
+    save = FALSE;
+	internal = TRUE;
+    type = boolean;
+    data = {
+        default = FALSE;
+    };
+};
+
+prop = {
+    name = "send_oob_ind_reliably";
+    desc = "Whether OOB hit indications should be sent reliably over UDP when "
+		"remote querying end has indicated support for semi-reliable UDP";
+    type = boolean;
+    data = {
+        default = TRUE;
+    };
+};
+
+prop = {
+	name = "adns_debug";
+	desc = "Debug level for the ADNS (asynchronous DNS) thread.";
+    type = guint32;
+    data = {
+        default = 0;
+        min     = 0;
+        max     = 20;
+    };
+};
+
+prop = {
+    name = "bc_http_out";
+    desc = "Total outgoing HTTP traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_gnet_tcp_up_out";
+    desc = "Total outgoing Gnutella TCP UP traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_gnet_tcp_leaf_out";
+    desc = "Total outgoing Gnutella TCP leaf traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_gnet_udp_out";
+    desc = "Total outgoing Gnutella UDP traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_dht_out";
+    desc = "Total outgoing DHT traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_loopback_out";
+    desc = "Total outgoing traffic in bytes on the loopback address "
+		"for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_private_out";
+    desc = "Total outgoing traffic in bytes on the private addresses "
+		"for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_http_in";
+    desc = "Total incoming HTTP traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_gnet_tcp_up_in";
+    desc = "Total incoming Gnutella TCP UP traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_gnet_tcp_leaf_in";
+    desc = "Total incoming Gnutella TCP leaf traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_gnet_udp_in";
+    desc = "Total incoming Gnutella UDP traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_dht_in";
+    desc = "Total incoming DHT traffic in bytes for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_loopback_in";
+    desc = "Total incoming traffic in bytes on the loopback address "
+		"for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+prop = {
+    name = "bc_private_in";
+    desc = "Total incoming traffic in bytes on the private addresses "
+		"for this session.";
+    type = guint64;
+    data = {
+        default = 0;
+    };
+};
+
+/* vi: set ts=4: */

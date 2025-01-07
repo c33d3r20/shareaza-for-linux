@@ -1,0 +1,118 @@
+?RCS: $Id$
+?RCS:
+?RCS: @COPYRIGHT@
+?RCS:
+?MAKE:glibconfig glibcflags glibldflags d_glib: glibpackage cc ccflags \
+	ldflags cat rm gtkversion Warn d_headless glibversion
+?MAKE:	-pick add $@ %<
+?S:glibconfig:
+?S:	This variable holds the command to use to grab information about GLib.
+?S: Typically something like "pkg-config glib" or "glib-config".
+?S:.
+?S:glibcflags:
+?S:	This variable holds the compiler flags required to compile with GLib.
+?S:.
+?S:glibldflags:
+?S:	This variable holds the linker flags required to link against GLib.
+?S:.
+?S:d_glib:
+?S:	This variable is set if compiling against GLib works.
+?S:.
+?T:modver version x l
+: how can we find information about GLib?
+echo " "
+echo "Checking how we can gather information about GLib..." >&4
+d_glib="$undef"
+version=
+
+if [ "$glibversion" = 1 ] && [ glib-config --cflags >/dev/null 2>&1 ]; then
+	glibconfig='glib-config'
+	modver=--version
+elif pkg-config $glibpackage --cflags >/dev/null 2>&1; then
+	glibconfig="pkg-config $glibpackage"
+	modver=--modversion
+elif pkg-config --cflags $glibpackage >/dev/null 2>&1; then
+	version=`pkg-config --version`
+	echo "(You have a weird pkg-config, version $version)"
+?X: this weird pkg-config (older than 0.29?) needs --cflags and --libs first
+	glibcflags=`pkg-config --cflags $glibpackage`
+	glibldflags=`pkg-config --libs $glibpackage`
+	version=`pkg-config --modversion $glibpackage | head -1`
+else
+	echo "You've got problems!  Do you have GLib installed?" >&4
+	glibconfig='false'
+	modver=''
+fi
+
+case "$version" in
+'')
+	echo "(I'll use '$glibconfig' to gather that information.)"
+	glibcflags=`$glibconfig --cflags`
+	glibldflags=`$glibconfig --libs`
+	version=`$glibconfig $modver | head -1`
+	;;
+esac
+
+?X: Remove usless libraries (which we use no symbols from in gtk-gnutella...)
+case "$glibversion" in
+2)
+	x=
+	for l in $glibldflags; do
+		case "$l" in
+		-lgthread-2.0) ;;
+		*) x="$x $l";;
+		esac
+	done
+	glibldflags=$x
+	;;
+esac
+
+?X:
+?X: check that we've got the version they asked for
+?X:
+echo " "
+echo "Checking whether glib.h can be compiled against..." >&4
+$cat >try.c <<EOC
+#include <glib.h>
+#ifndef GLIB_MAJOR_VERSION
+#error "glib.h not found?"
+EOC
+case "$d_headless" in
+"$define") ;;
+*) $cat >>try.c <<EOC
+#else
+#if GLIB_MAJOR_VERSION != $gtkversion
+#error "Wrong glib.h?"
+#endif
+EOC
+	;;
+esac
+$cat >>try.c <<EOC
+#endif
+
+int main(void)
+{
+  gpointer p;
+
+#if $glibversion >= 2
+?X: g_string_overwrite_len() present in GLib since 2.14
+  p = g_string_overwrite_len(NULL, 0, NULL, 0);
+#else
+  p = g_malloc(23);
+#endif
+
+  if (!p)
+    return 1;
+  return 0;
+}
+EOC
+
+if $cc -o try try.c $ccflags $ldflags $glibcflags $glibldflags >/dev/null 2>&1;
+then
+  d_glib="$define"
+  echo "We'll be using GLib version $version." >&4
+else 
+  ./warn "Cannot compile against GLib version '$version'" 4>&4
+fi
+$rm -rf try try.*
+
