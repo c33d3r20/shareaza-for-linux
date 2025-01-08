@@ -4,9 +4,6 @@
 # Configure is too verbose and curious about many things and not
 # sufficiently eloquent about others such as available options.
 
-# Bail out on unexpected errors
-set -e
-
 # This is not interactive
 exec </dev/null
 
